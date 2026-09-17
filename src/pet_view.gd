@@ -19,8 +19,6 @@ var _male_desk_top: Sprite2D
 var _male_desk_front: Sprite2D
 var _icon_body: Sprite2D
 var _icon_idle_prop: Sprite2D
-var _male_left_hand: Sprite2D
-var _male_right_hand: Sprite2D
 var _rig: Skeleton2D
 var _weapon_rig: Skeleton2D
 var _weapon_bone: Bone2D
@@ -43,7 +41,7 @@ func _ready() -> void:
 	_icon_body = _sprite(self, "male_icon_body", Vector2.ZERO)
 	_body_sprites.append(_icon_body)
 	_icon_body.visible = false
-	_icon_body.region_rect = Rect2(0, 0, 160, 154)
+	_icon_body.region_rect = Rect2(0, 0, 160, 143)
 	_icon_idle_prop = _sprite(self, "cigarette", Vector2(78, 73), false)
 	_icon_idle_prop.visible = false
 	_rig = Skeleton2D.new()
@@ -78,14 +76,6 @@ func _ready() -> void:
 	_male_desk_top.region_rect = Rect2(0, 0, 150, 18)
 	for prop in ["monitor", "keyboard", "papers", "cup", "ashtray"]:
 		_props[prop] = _sprite(self, prop, Vector2.ZERO)
-	_male_left_hand = _sprite(self, "male_icon_body", Vector2(49, 120), false)
-	_male_left_hand.region_enabled = true
-	_male_left_hand.region_rect = Rect2(43, 149, 19, 18)
-	_male_left_hand.scale = Vector2(0.9, 0.9)
-	_male_right_hand = _sprite(self, "male_icon_body", Vector2(93, 120), false)
-	_male_right_hand.region_enabled = true
-	_male_right_hand.region_rect = Rect2(98, 149, 19, 18)
-	_male_right_hand.scale = Vector2(0.9, 0.9)
 	_male_desk_front = _sprite(self, "desk_0", Vector2(5, 136), false)
 	_male_desk_front.region_enabled = true
 	_male_desk_front.region_rect = Rect2(0, 18, 150, 50)
@@ -131,19 +121,13 @@ func _set_male_frame(index: int) -> void:
 	_icon_body.texture = _male_frames[_male_frame]
 
 
-func _set_male_layers(stage: int, active: bool) -> void:
+func _set_male_layers(stage: int) -> void:
 	var layered := character == "male" and stage < 4
-	var smoking := layered and not active and _male_frame >= 4 and _male_frame <= 10
 	var desk_texture := _tex("desk_" + str(stage))
 	for sprite in [_male_desk_top, _male_desk_front]:
 		sprite.visible = layered
 		sprite.texture = desk_texture
 	_desk.visible = not layered
-	for hand in [_male_left_hand, _male_right_hand]:
-		if _male_frame >= 0:
-			hand.texture = _male_frames[_male_frame]
-		hand.visible = layered and not active
-	_male_right_hand.visible = layered and not active and not smoking
 
 
 func _update_male_frame(stage: int, active: bool, collapse: float, impact: float) -> void:
@@ -228,9 +212,9 @@ func _apply_art(furniture_stage: int = -1) -> void:
 	var male_layered := character == "male" and stage < 4
 	_icon_body.visible = character == "male"
 	_icon_body.region_enabled = male_layered
-	_icon_body.region_rect = Rect2(0, 0, 160, 154)
+	_icon_body.region_rect = Rect2(0, 0, 160, 143)
 	_icon_body.scale = Vector2(0.7625, 0.7625) if male_layered else Vector2.ONE
-	_icon_body.position = Vector2(-62, -87) if male_layered else Vector2(-81, -88)
+	_icon_body.position = Vector2(-62, -78) if male_layered else Vector2(-81, -88)
 	_rig.visible = true
 	_icon_idle_prop.visible = false
 	_parts.head.texture = _tex(character + "_head_" + str(stage))
@@ -363,7 +347,9 @@ func _pose(_delta: float) -> void:
 		_props.ashtray.position = Vector2(103, 120).lerp(Vector2(115, 163), collapse).round()
 		_props.papers.position = Vector2(130, 158)
 		_props.cup.position = Vector2(136, 153)
-	if character == "male" and stage < 4 and not active:
+	if character == "male" and stage < 4:
+		_male_desk_top.position = Vector2(5, 119)
+		_male_desk_front.position = Vector2(5, 136)
 		_props.monitor.position = Vector2(7, 101)
 		_props.keyboard.position = Vector2(61, 120)
 		_props.papers.position = Vector2(112, 119)
@@ -395,7 +381,7 @@ func _pose(_delta: float) -> void:
 		_bones.head.position.y += roundf(impact * 2.0) if _event.weapon == "hammer" else 0.0
 		_bones.left_arm.rotation -= impact * 0.55
 		_bones.right_arm.rotation += impact * 0.55
-		if not finale and stage < 4:
+		if character != "male" and not finale and stage < 4:
 			_desk.position.x += roundf(sin(_elapsed * 65) * impact * 2.0)
 			_props.papers.rotation += sin(_elapsed * 35) * impact * 0.18
 		var approach := clampf(_elapsed / contact, 0.0, 1.0)
@@ -430,7 +416,7 @@ func _pose(_delta: float) -> void:
 	else:
 		_weapon_rig.visible = false
 	_update_male_frame(stage, active, collapse, impact)
-	_set_male_layers(stage, active)
+	_set_male_layers(stage)
 
 
 func _pixel_hit(sprite: Sprite2D, point: Vector2) -> bool:

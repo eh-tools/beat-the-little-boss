@@ -102,3 +102,9 @@ New view regressions verify the desk-edge region, reject an under-desk body pixe
 The normal male leader scene now keeps the approved original 32-frame character identity while composing the figure as upper body behind the desk, frame-derived hands on the desktop, and a complete foreground cabinet. Smoking suppresses the duplicated right desktop hand so the original raised cigarette hand remains visible. The coffee cup is positioned at `(127, 118)`, with its base aligned to the front desk edge. The terminal state retains the complete kneeling frame and broken furniture.
 
 New view checks were failing before the layer implementation and now pass, along with core, desktop, full build, Windows startup, and fresh-extraction startup checks. `DesktopPet-Windows-x64-0.1.11.zip` contains only the EXE, native DLL, README, and notices; its file/product version is 0.1.11.0. SHA256: `251FB443B4BF4F1FF30333C58B2B1D4769F2A855C03CB62715EA446ECCE6D7EC`.
+
+## Follow-up 0.1.12 — stable male desk during hits
+
+The frame-derived desktop hand fragments were removed because their source bounds made a visible seam and stray upper fragments. The male upper-body crop now ends behind the desk edge, so the desk forms one continuous foreground. Male hit recoil stays on the leader skeleton: the desk layers, monitor, keyboard, papers, ashtray, and coffee remain anchored at their normal positions.
+
+New View regressions first failed for the old crop and moving hit props, then passed after the fix. Core, desktop, view, complete export, Windows startup, and fresh-extraction startup checks pass. `DesktopPet-Windows-x64-0.1.12.zip` contains exactly the EXE, native DLL, README, and notices; its file/product version is 0.1.12.0. SHA256: `26DE3479FFC3F76D97CA56361EE57AB9A58D51B3ED6FF71C9164071367B8925A`.

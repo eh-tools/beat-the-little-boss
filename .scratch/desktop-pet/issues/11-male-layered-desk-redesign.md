@@ -19,3 +19,7 @@ The 0.1.10 region crop removed the body leak but still made the male leader look
 2026-09-18: Implemented the approved scene using the existing 32 male-frame textures only. Normal male stages use a compact upper-body layer behind a desk-top layer, frame-derived desktop hands, and a foreground cabinet layer; the smoking frame exposes the original raised hand without a duplicate desktop hand. The cup is at `(127, 118)`, where its base meets the desk edge. The terminal state restores the full kneeling frame and damaged furniture.
 
 The view regression suite was written before the implementation and failed against the previous one-desk scene. Core, desktop, view, complete export, Windows startup, and fresh-extraction startup checks now pass. `dist/DesktopPet-Windows-x64-0.1.11.zip` reports file/product version `0.1.11.0`; SHA256: `251FB443B4BF4F1FF30333C58B2B1D4769F2A855C03CB62715EA446ECCE6D7EC`.
+
+2026-09-18: Follow-up fixes remove the frame-derived hand crops, which were creating the visible seam and misplaced fragments. The upper-body crop now terminates directly behind the desktop edge. During male attacks the monitor, keyboard, coffee and both desk layers retain their normal positions; only the leader skeleton recoils.
+
+`DesktopPet-Windows-x64-0.1.12.zip` passed the full build and a fresh-extraction startup test. It reports file/product version `0.1.12.0`; SHA256: `26DE3479FFC3F76D97CA56361EE57AB9A58D51B3ED6FF71C9164071367B8925A`.

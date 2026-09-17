@@ -18,9 +18,8 @@ func run() -> void:
 	check(pet._icon_body.visible and not pet._parts.head.visible, "male uses the icon-derived sprite body")
 	check(pet._male_frames.size() == 32, "male icon animation loads all 32 sprite frames")
 	check(pet._icon_body.scale == Vector2(0.7625, 0.7625), "male layered body keeps the approved compact scale")
-	check(pet._icon_body.region_rect == Rect2(0, 0, 160, 154), "male layered body keeps the approved upper-body crop")
+	check(pet._icon_body.region_rect == Rect2(0, 0, 160, 143), "male body ends cleanly behind the desk instead of exposing a cropped seam")
 	check(pet._male_desk_top.visible and pet._male_desk_front.visible, "male desk uses separate top and cabinet foreground layers")
-	check(pet._male_left_hand.visible and pet._male_right_hand.visible, "male idle keeps both hands on the desktop")
 	check(pet._props.cup.position == Vector2(127, 118), "male coffee cup rests at the approved desk position")
 	check(not pet._pixel_hit(pet._icon_body, Vector2(82, 144)), "male body cannot appear below the desk")
 	pet._capture = false
@@ -36,12 +35,15 @@ func run() -> void:
 	pet._time = 10.5
 	pet._pose(0.0)
 	check(pet._male_frame >= 4 and pet._male_frame <= 10, "male smoking sequence starts after a calm idle interval")
-	check(not pet._male_right_hand.visible, "male smoking exposes the original raised right hand instead of a duplicate desktop hand")
 	pet.play_attack(attack("male", "hammer", 1, 0))
 	pet._elapsed = 0.17
 	pet._pose(0.0)
 	check(absf(pet._icon_body.global_rotation) > 0.001, "male icon sprite recoils on hit")
 	check(pet._male_frame >= 16 and pet._male_frame < 20, "male hit uses a sustained flinch frame")
+	check(pet._male_desk_top.position == Vector2(5, 119) and pet._male_desk_front.position == Vector2(5, 136), "male desk layers stay fixed during a hit")
+	check(pet._props.monitor.position == Vector2(7, 101), "male monitor stays on the desk during a hit")
+	check(pet._props.keyboard.position == Vector2(61, 120), "male keyboard stays on the desk during a hit")
+	check(pet._props.cup.position == Vector2(127, 118), "male coffee cup stays on the desk during a hit")
 	pet.capture_pose("male", 2)
 	check(pet._male_frame >= 20 and pet._male_frame < 24, "male injured stage uses persistent damage frames")
 	var injured_frame := pet._male_frame
