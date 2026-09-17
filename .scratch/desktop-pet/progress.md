@@ -96,3 +96,9 @@ The new timing regressions fail on 0.1.8 and pass after the fix. Core, desktop, 
 The male sprite previously rendered in full behind a desk texture with transparent regions, causing suit and hands to appear through the drawers and lower desk opening. Non-terminal male stages now use the existing `Sprite2D` region to draw only the top 160×108 pixels, while the unchanged desk remains in front. This retains the face, shoulders, smoking action, and hit recoil above the desk while removing the detached lower-body leak. The terminal kneeling stage turns the region off so its full pose and wreckage remain visible.
 
 New view regressions verify the desk-edge region, reject an under-desk body pixel, and preserve the terminal sprite. Core, desktop, view, export, Windows startup, and clean-extraction startup checks pass. `DesktopPet-Windows-x64-0.1.10.zip` contains exactly the EXE, native DLL, README, and notices; its file/product version is 0.1.10.0. SHA256: `D11665B8EB0E30181105D5F733047CDB7DB3B4FDB05D2CA3EA76CBB0EA63E880`.
+
+## Follow-up 0.1.11 — male layered desk scene
+
+The normal male leader scene now keeps the approved original 32-frame character identity while composing the figure as upper body behind the desk, frame-derived hands on the desktop, and a complete foreground cabinet. Smoking suppresses the duplicated right desktop hand so the original raised cigarette hand remains visible. The coffee cup is positioned at `(127, 118)`, with its base aligned to the front desk edge. The terminal state retains the complete kneeling frame and broken furniture.
+
+New view checks were failing before the layer implementation and now pass, along with core, desktop, full build, Windows startup, and fresh-extraction startup checks. `DesktopPet-Windows-x64-0.1.11.zip` contains only the EXE, native DLL, README, and notices; its file/product version is 0.1.11.0. SHA256: `251FB443B4BF4F1FF30333C58B2B1D4769F2A855C03CB62715EA446ECCE6D7EC`.

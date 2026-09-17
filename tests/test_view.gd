@@ -17,8 +17,11 @@ func run() -> void:
 	pet.capture_pose("male", 0)
 	check(pet._icon_body.visible and not pet._parts.head.visible, "male uses the icon-derived sprite body")
 	check(pet._male_frames.size() == 32, "male icon animation loads all 32 sprite frames")
-	check(pet._icon_body.region_enabled, "male regular pose is clipped at the desk edge")
-	check(pet._icon_body.region_rect == Rect2(0, 0, 160, 108), "male desk clip ends at the desk edge")
+	check(pet._icon_body.scale == Vector2(0.7625, 0.7625), "male layered body keeps the approved compact scale")
+	check(pet._icon_body.region_rect == Rect2(0, 0, 160, 154), "male layered body keeps the approved upper-body crop")
+	check(pet._male_desk_top.visible and pet._male_desk_front.visible, "male desk uses separate top and cabinet foreground layers")
+	check(pet._male_left_hand.visible and pet._male_right_hand.visible, "male idle keeps both hands on the desktop")
+	check(pet._props.cup.position == Vector2(127, 118), "male coffee cup rests at the approved desk position")
 	check(not pet._pixel_hit(pet._icon_body, Vector2(82, 144)), "male body cannot appear below the desk")
 	pet._capture = false
 	pet._time = 0.0
@@ -33,6 +36,7 @@ func run() -> void:
 	pet._time = 10.5
 	pet._pose(0.0)
 	check(pet._male_frame >= 4 and pet._male_frame <= 10, "male smoking sequence starts after a calm idle interval")
+	check(not pet._male_right_hand.visible, "male smoking exposes the original raised right hand instead of a duplicate desktop hand")
 	pet.play_attack(attack("male", "hammer", 1, 0))
 	pet._elapsed = 0.17
 	pet._pose(0.0)
@@ -48,6 +52,8 @@ func run() -> void:
 	pet.capture_pose("male", 4)
 	check(pet._male_frame >= 28 and pet._male_frame < 32, "male terminal state uses kneeling damage frames")
 	check(not pet._icon_body.region_enabled, "male terminal pose keeps the full kneeling sprite")
+	check(not pet._male_desk_top.visible and not pet._male_desk_front.visible, "male terminal pose restores the broken full desk")
+	check(pet._icon_body.scale == Vector2.ONE, "male terminal pose restores the full-size kneeling frame")
 	pet.capture_pose("male", 0)
 	for damage_stage in [1, 2, 3]:
 		pet.play_attack(attack("male", "hammer", 1, damage_stage))
