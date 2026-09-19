@@ -1,0 +1,16 @@
+{
+  "description": "git guard: 拦截 --no-verify / core.hooksPath 绕过与 main 上的直接提交",
+  "PreToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "python3 \"$(git rev-parse --show-toplevel)/tools/hooks/git-guard.py\"",
+          "timeout": 10,
+          "statusMessage": "检查 git 命令"
+        }
+      ]
+    }
+  ]
+}
