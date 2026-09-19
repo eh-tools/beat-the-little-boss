@@ -10,6 +10,9 @@ const Geometry = preload("res://src/desktop_geometry.gd")
 const PetTheme = preload("res://src/pet_theme.gd")
 const BODY_MARGIN := Vector2(16, 16)
 const WINDOW_SIZE := Vector2(192, 212)
+# The OS pointer stays on this fixed hotspot (the frame canvas centre) so the weapon art
+# animates around it instead of dragging the pointer along.
+const CURSOR_HOTSPOT := Vector2(36, 36)
 
 var session = Session.new()
 var data = Data.new()
@@ -186,7 +189,7 @@ func _set_cursor(on: bool) -> void:
 		return
 	cursor_frame = frame_index
 	var texture: Texture2D = pet.weapon_cursor_frame(session.weapon, frame_index)
-	Input.set_custom_mouse_cursor(texture, Input.CURSOR_ARROW, Vector2(28, 28))
+	Input.set_custom_mouse_cursor(texture, Input.CURSOR_ARROW, CURSOR_HOTSPOT)
 
 func _attack_started(event: Dictionary) -> void:
 	pet.play_attack(event)
@@ -302,7 +305,7 @@ func _style_popup(popup: PopupMenu) -> void:
 	popup.add_theme_font_size_override("font_size", 16)
 	popup.add_theme_color_override("font_color", PetTheme.INK)
 	popup.add_theme_color_override("font_hover_color", PetTheme.INK)
-	popup.add_theme_color_override("font_separator_color", Color("8d5a62"))
+	popup.add_theme_color_override("font_separator_color", PetTheme.MUTED)
 	popup.add_theme_color_override("font_disabled_color", Color("9d8e88"))
 	popup.add_theme_constant_override("item_start_padding", 14)
 	popup.add_theme_constant_override("item_end_padding", 14)
@@ -364,12 +367,13 @@ func _menu_action(id: int) -> void:
 
 func _reset_selected() -> void:
 	session.reset_character()
-	pet.set_character(session.selected, session.snapshot())
-	bubble_clock.clear()
-	critical_left = 0.0
+	_refresh_after_reset()
 
 func _reset_all() -> void:
 	session.reset_all()
+	_refresh_after_reset()
+
+func _refresh_after_reset() -> void:
 	pet.set_character(session.selected, session.snapshot())
 	bubble_clock.clear()
 	critical_left = 0.0

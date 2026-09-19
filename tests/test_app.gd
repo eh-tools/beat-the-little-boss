@@ -59,6 +59,8 @@ func run() -> void:
 	check(app.menu.get_theme_color("font_color") == Color("303247"), "context menu text uses the pet ink color")
 	check(app.menu.get_theme_font("font") == PetTheme.font(), "context menu uses the bundled pixel font")
 	check(app.menu.get_theme_font_size("font_size") == 16 and menu_panel.get_corner_radius(0) == 6, "root menu uses the specified pixel metrics")
+	var app_script: GDScript = app.get_script()
+	check(app_script.get_script_constant_map().get("CURSOR_HOTSPOT") == Vector2(36, 36), "hover cursor keeps the fixed 36,36 hotspot")
 	check(app.scale_menu.get_item_count() == 3, "scale options are grouped in a submenu")
 	check(app.scale_menu.get_theme_font("font") == PetTheme.font() and app.scale_menu.get_theme_stylebox("panel").get_corner_radius(0) == 6, "scale submenu shares the root pixel theme")
 	var root_labels: Array[String] = []
@@ -150,6 +152,18 @@ func run() -> void:
 	check(app.settings.lines.find_children("*", "ScrollContainer", true, false).is_empty(), "quote rows have no nested scroll container")
 	var heading: Array = app.settings.find_children("*", "Label", true, false).filter(func(label): return label.text == "让领导换一套说辞。")
 	check(heading.size() == 1 and heading[0].get_theme_font_size("font_size") == 24, "settings heading uses the requested pixel size")
+	check(app.settings.title == "语录与音量设置 · Beat the Little Boss", "settings window title is localised")
+	check(app.settings.theme.default_font == PetTheme.font(), "settings window uses the bundled pixel font theme")
+	var settings_header := app.settings.find_child("HeaderBar", true, false) as PanelContainer
+	check(settings_header != null and (settings_header.get_theme_stylebox("panel") as StyleBoxFlat).bg_color == PetTheme.INK, "settings header uses the ink bar")
+	var save_button: Button
+	var delete_button: Button
+	for button in app.settings.find_children("*", "Button", true, false):
+		if button.text == "保存设置": save_button = button
+		if button.text == "删除": delete_button = button
+	check(save_button != null and (save_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == PetTheme.TEAL, "settings save button uses the teal action style")
+	check(delete_button != null and (delete_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == PetTheme.CORAL, "settings delete button uses the coral destructive style")
+	check(app.settings.volume.get_theme_icon("grabber").get_width() == 12, "settings volume slider uses the pixel grabber")
 	var notice_panel := app.notice.get_theme_stylebox("panel") as StyleBoxFlat
 	check(app.notice.get_theme_font_size("font_size") == 16 and notice_panel.bg_color == PetTheme.CREAM and app.notice.get_label().get_theme_color("font_color") == PetTheme.CORAL, "notice uses the shared pixel theme")
 	app.settings.get_texture().get_image().save_png(output.path_join("settings.png"))

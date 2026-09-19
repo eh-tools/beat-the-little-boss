@@ -10,6 +10,12 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-19-pixel-menu-and-hover-design.md`
 
+> **Superseded metrics (2026-09-19):** the hover-cursor constraints and Task 5 below
+> (56×56 canvas, (28, 28) hotspot, three frames at 120ms) were replaced by the user-approved
+> `docs/superpowers/specs/2026-09-19-settings-theme-and-hover-actions-design.md`
+> (72×72 canvas, (36, 36) hotspot, five frames at 100ms), which also rebuilt the settings
+> window to its v3 composition. Read this plan as the record of round one only.
+
 ## Global Constraints
 
 - Bundle `assets/fonts/fusion-pixel-12px-proportional.ttf`, extracted from Fusion Pixel release `2026.09.01`, commit `51c6d2d`.
@@ -197,6 +203,9 @@
   ```
 
 ### Task 5: Animate the hover weapon cursor
+
+> Superseded by the approved settings-theme and hover-actions spec: the shipped cursor uses a
+> 72×72 canvas, a (36, 36) hotspot and five cached frames at 100ms per frame.
 
 **Files:**
 - Modify: `src/pet_view.gd`
