@@ -52,6 +52,7 @@ func _ready() -> void:
 	layout.add_theme_constant_override("separation", 12)
 	margin.add_child(layout)
 	var scroll := ScrollContainer.new()
+	scroll.name = "SettingsScroll"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	layout.add_child(scroll)
@@ -61,7 +62,7 @@ func _ready() -> void:
 	scroll.add_child(box)
 	var heading := Label.new()
 	heading.text = "让领导换一套说辞。"
-	heading.add_theme_font_size_override("font_size", 27)
+	heading.add_theme_font_size_override("font_size", 24)
 	heading.add_theme_color_override("font_color", Color("ffe1a6"))
 	box.add_child(heading)
 	var subtitle := Label.new()
@@ -122,7 +123,7 @@ func _ready() -> void:
 	_button("恢复默认语录", files, _defaults)
 	var footer := HBoxContainer.new()
 	footer.alignment = BoxContainer.ALIGNMENT_END
-	layout.add_child(footer)
+	box.add_child(footer)
 	_button("关闭", footer, hide)
 	var save := _button("保存设置", footer, _save)
 	save.modulate = Color("95e0d0")
@@ -153,6 +154,12 @@ func _button(text_value: String, parent: Node, action: Callable) -> Button:
 	var button := Button.new()
 	button.text = text_value
 	button.custom_minimum_size.y = 36
+	button.add_theme_color_override("font_color", PetTheme.CREAM)
+	button.add_theme_color_override("font_hover_color", PetTheme.INK)
+	button.add_theme_color_override("font_pressed_color", PetTheme.INK)
+	button.add_theme_stylebox_override("normal", _row_style(Color("394050"), PetTheme.CORAL))
+	button.add_theme_stylebox_override("hover", _row_style(PetTheme.GOLD, PetTheme.CORAL))
+	button.add_theme_stylebox_override("pressed", _row_style(PetTheme.GOLD, PetTheme.CORAL))
 	button.pressed.connect(action)
 	parent.add_child(button)
 	return button
@@ -170,10 +177,23 @@ func _refresh_list() -> void:
 		if row.character != _role() or row.category != _category(): continue
 		filtered_indices.append(i)
 		var tag: String = "通用" if int(row.stage) == -1 else ["正常", "轻伤", "明显", "重伤", "终态"][int(row.stage)]
+		var row_control := HBoxContainer.new()
+		row_control.add_theme_constant_override("separation", 4)
+		var tag_panel := PanelContainer.new()
+		tag_panel.custom_minimum_size.x = 66
+		tag_panel.add_theme_stylebox_override("panel", _row_style(PetTheme.CORAL, PetTheme.CORAL))
+		var tag_label := Label.new()
+		tag_label.text = tag
+		tag_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		tag_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		tag_label.add_theme_color_override("font_color", PetTheme.INK)
+		tag_panel.add_child(tag_label)
+		row_control.add_child(tag_panel)
 		var button := Button.new()
-		button.text = "[%s] %s" % [tag, row.text]
+		button.text = row.text
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		button.custom_minimum_size.y = 34
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.toggle_mode = true
 		button.add_theme_color_override("font_color", PetTheme.CREAM)
 		button.add_theme_color_override("font_hover_color", PetTheme.INK)
@@ -182,7 +202,8 @@ func _refresh_list() -> void:
 		button.add_theme_stylebox_override("hover", _row_style(PetTheme.GOLD, PetTheme.CORAL))
 		button.add_theme_stylebox_override("pressed", _row_style(PetTheme.GOLD, PetTheme.CORAL))
 		button.pressed.connect(_select_row.bind(i))
-		lines.add_child(button)
+		row_control.add_child(button)
+		lines.add_child(row_control)
 
 func _row_style(background: Color, border: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()

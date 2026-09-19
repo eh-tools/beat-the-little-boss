@@ -137,7 +137,7 @@ func _input(event: InputEvent) -> void:
 	if not event is InputEventMouseButton: return
 	var point: Vector2 = (event.position / zoom) - BODY_MARGIN
 	if event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
-		if not pressed and not dragging and not menu.visible and not settings.visible and pet.solid_test(point) and pet.hit_test(point):
+		if not pressed and not dragging and not menu.visible and not settings.visible and pet.hit_test(point):
 			_reset_selected()
 		return
 	if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
@@ -299,7 +299,7 @@ func _create_menu() -> void:
 
 func _style_popup(popup: PopupMenu) -> void:
 	popup.add_theme_font_override("font", _chinese_font())
-	popup.add_theme_font_size_override("font_size", 15)
+	popup.add_theme_font_size_override("font_size", 16)
 	popup.add_theme_color_override("font_color", PetTheme.INK)
 	popup.add_theme_color_override("font_hover_color", PetTheme.INK)
 	popup.add_theme_color_override("font_separator_color", Color("8d5a62"))
@@ -311,7 +311,7 @@ func _style_popup(popup: PopupMenu) -> void:
 	panel_style.bg_color = PetTheme.CREAM
 	panel_style.border_color = PetTheme.INK
 	panel_style.set_border_width_all(2)
-	panel_style.set_corner_radius_all(3)
+	panel_style.set_corner_radius_all(6)
 	panel_style.shadow_color = Color(0, 0, 0, 0.18)
 	panel_style.shadow_size = 2
 	popup.add_theme_stylebox_override("panel", panel_style)
@@ -420,8 +420,18 @@ func _create_notice() -> void:
 	notice = AcceptDialog.new()
 	notice.title = "桌宠 · 本地设置"
 	notice.add_theme_font_override("font", _chinese_font())
+	notice.add_theme_font_size_override("font_size", 16)
+	notice.add_theme_color_override("font_color", PetTheme.INK)
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = PetTheme.CREAM
+	panel_style.border_color = PetTheme.INK
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(6)
+	notice.add_theme_stylebox_override("panel", panel_style)
 	notice.min_size = Vector2i(420, 160)
 	add_child(notice)
+	var dialog_label := notice.get_label()
+	dialog_label.add_theme_color_override("font_color", PetTheme.CORAL)
 
 func _show_error(message: String) -> void:
 	notice.dialog_text = message

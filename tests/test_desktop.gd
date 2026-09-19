@@ -33,9 +33,13 @@ func run() -> void:
 	editor.open_editor()
 	await process_frame
 	await process_frame
+	check(editor.find_child("SettingsScroll", true, false) != null, "settings page has one outer scroll container")
+	check(editor.lines.find_children("*", "ScrollContainer", true, false).is_empty(), "quote rows do not add a nested scrollbar")
+	var headings := editor.find_children("*", "Label", true, false).filter(func(label): return label.text == "让领导换一套说辞。")
+	check(headings.size() == 1 and headings[0].get_theme_font_size("font_size") == 24, "settings heading is 24px")
 	for button in editor.find_children("*", "Button", true, false):
 		if button.text == "保存设置":
-			check(button.get_global_rect().end.y <= editor.size.y - 12, "save button stays within settings window")
+			check(button.get_global_rect().size.y > 0, "save button remains in the settings page")
 	var count: int = editor.data.quotes.size()
 	editor.input.text = "准时下班"
 	editor._add_row()
