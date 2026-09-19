@@ -13,8 +13,8 @@
 > **Superseded metrics (2026-09-19):** the hover-cursor constraints and Task 5 below
 > (56×56 canvas, (28, 28) hotspot, three frames at 120ms) were replaced by the user-approved
 > `docs/superpowers/specs/2026-09-19-settings-theme-and-hover-actions-design.md`
-> (72×72 canvas, (36, 36) hotspot, five frames at 100ms), which also rebuilt the settings
-> window to its v3 composition. Read this plan as the record of round one only.
+> (72×72 canvas, (36, 36) hotspot, five frames at 200ms after the playtest slowdown), which also
+> rebuilt the settings window to its v3 composition. Read this plan as the record of round one only.
 
 ## Global Constraints
 
@@ -205,7 +205,7 @@
 ### Task 5: Animate the hover weapon cursor
 
 > Superseded by the approved settings-theme and hover-actions spec: the shipped cursor uses a
-> 72×72 canvas, a (36, 36) hotspot and five cached frames at 100ms per frame.
+> 72×72 canvas, a (36, 36) hotspot and five cached frames at 200ms per frame.
 
 **Files:**
 - Modify: `src/pet_view.gd`

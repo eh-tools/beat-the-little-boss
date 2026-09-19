@@ -8,7 +8,7 @@ const MALE_BODY_BASELINE := 130.0
 const FRAME_CHARACTER_IDS := ["male", "female"]
 const CURSOR_FRAME_SIZE := 72
 const CURSOR_FRAME_COUNT := 5
-const CURSOR_FRAME_SECONDS := 0.1
+const CURSOR_FRAME_SECONDS := 0.2
 const CURSOR_SOURCE_PIVOT := Vector2(24, 24)
 const CURSOR_HAMMER_PIVOT := Vector2(24, 40)
 # Approved hover choreography: wind-up, raised, swing, impact (head over the hotspot), rebound.

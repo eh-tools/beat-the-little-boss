@@ -61,7 +61,7 @@ The settings theme should be defined through focused helpers in `src/pet_theme.g
 
 The OS cursor remains the actual input cursor. Its hotspot is fixed at `(36, 36)` on a transparent 72×72 canvas so the pointer does not jump while the artwork moves.
 
-Both weapons use five cached frames at 100ms per frame, looping every 500ms while hover is active. Hover entry always starts on frame 0. Hover exit, menu opening, settings opening, and dragging restore the system cursor exactly as today.
+Both weapons use five cached frames at 200ms per frame, looping every one second while hover is active (halved from the original 100ms/500ms after user playtest). Hover entry always starts on frame 0. Hover exit, menu opening, settings opening, and dragging restore the system cursor exactly as today.
 
 ### Inflatable hammer
 
@@ -112,7 +112,7 @@ Add or update tests that fail on the current implementation and verify:
 - hotspot remains `(36, 36)` in `main.gd`;
 - hammer frame images differ by both rotation and position at indices 0–4;
 - glove frames alternate unmirrored/mirrored left and right impacts;
-- timing boundaries are frame 0 at 0ms, frame 1 at 100ms, frame 2 at 200ms, frame 3 at 300ms, frame 4 at 400ms, and frame 0 again at 500ms;
+- timing boundaries are frame 0 at 0ms, frame 1 at 200ms, frame 2 at 400ms, frame 3 at 600ms, frame 4 at 800ms, and frame 0 again at 1000ms;
 - core, desktop, view, female-idle, attack-motion, and app integration suites still pass where supported;
 - the Windows portable export contains the revised UI and cursor resources.
 

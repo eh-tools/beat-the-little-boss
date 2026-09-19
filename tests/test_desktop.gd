@@ -60,10 +60,11 @@ func run() -> void:
 	root.add_child(view)
 	await process_frame
 	check(View.CURSOR_FRAME_SIZE == 72 and View.CURSOR_FRAME_SIZE / 2 == 36, "hover cursor uses the approved 72px canvas around the 36,36 hotspot")
-	for step in [[0.0, 0], [0.05, 0], [0.1, 1], [0.19, 1], [0.2, 2], [0.3, 3], [0.4, 4], [0.45, 4], [0.5, 0], [0.75, 2], [1.05, 0]]:
+	for step in [[0.0, 0], [0.05, 0], [0.19, 0], [0.2, 1], [0.39, 1], [0.4, 2], [0.6, 3], [0.8, 4], [0.95, 4], [1.0, 0], [1.5, 2], [2.2, 1]]:
 		check(view.weapon_cursor_frame_index(step[0]) == step[1], "hover cursor frame %d covers %.2fs" % [step[1], step[0]])
 	check(view.weapon_cursor_frame_index(-1.0) == 0, "negative hover time is clamped to the first frame")
 	check(View.CURSOR_FRAME_COUNT == 5, "hover cursor loops through five frames")
+	check(is_equal_approx(View.CURSOR_FRAME_SECONDS, 0.2) and is_equal_approx(View.CURSOR_FRAME_COUNT * View.CURSOR_FRAME_SECONDS, 1.0), "hover cursor advances every 200ms and loops once a second")
 	for weapon in ["hammer", "gloves"]:
 		var frames: Array[Texture2D] = []
 		var origins := {}
