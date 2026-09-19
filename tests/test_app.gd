@@ -36,6 +36,13 @@ func run() -> void:
 	check(app.session.selected == "male" and app.session.snapshot().progress == 0, "fresh launch shows intact male leader")
 	check(not app.notice.visible, "fresh launch has no configuration error dialog")
 	check(not app.bubble_clock.visible and not app.bubble.visible, "fresh launch does not flash an onboarding speech bubble")
+	# Window 默认 visible = true。语录工坊若等到 _ready() 才隐藏, add_child() 入树那一刻
+	# Godot 就已经在屏幕左上角创建并显示了一个 620x660 的原生窗口, 之后才销毁;
+	# DWM 合成到那几毫秒就是启动时一闪而过的黑/白方块。
+	var fresh_settings = load("res://src/settings_window.gd").new()
+	check(not fresh_settings.visible, "quote workshop is hidden before it enters the tree")
+	fresh_settings.free()
+	check(not app.settings.visible, "quote workshop stays hidden until the user opens it")
 	check(not ProjectSettings.get_setting("application/boot_splash/show_image"), "export does not show the default Godot boot image")
 	check(ProjectSettings.get_setting("application/boot_splash/bg_color").a == 0.0, "boot splash background is transparent")
 	check(ProjectSettings.get_setting("display/window/size/window_width_override") == 1, "startup window stays one pixel wide until the scene is ready")
