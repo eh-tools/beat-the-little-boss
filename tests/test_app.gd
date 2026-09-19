@@ -36,12 +36,25 @@ func run() -> void:
 	check(app.session.selected == "male" and app.session.snapshot().progress == 0, "fresh launch shows intact male leader")
 	check(not app.notice.visible, "fresh launch has no configuration error dialog")
 	check(not app.bubble_clock.visible and not app.bubble.visible, "fresh launch does not flash an onboarding speech bubble")
+	# Window 默认 visible = true。语录工坊若等到 _ready() 才隐藏, add_child() 入树那一刻
+	# Godot 就已经在屏幕左上角创建并显示了一个 620x660 的原生窗口, 之后才销毁;
+	# DWM 合成到那几毫秒就是启动时一闪而过的黑/白方块。
+	var fresh_settings = load("res://src/settings_window.gd").new()
+	check(not fresh_settings.visible, "quote workshop is hidden before it enters the tree")
+	fresh_settings.free()
+	check(not app.settings.visible, "quote workshop stays hidden until the user opens it")
 	check(not ProjectSettings.get_setting("application/boot_splash/show_image"), "export does not show the default Godot boot image")
 	check(ProjectSettings.get_setting("application/boot_splash/bg_color").a == 0.0, "boot splash background is transparent")
+	check(ProjectSettings.get_setting("application/config/icon", "") == "res://assets/icon.png", "runtime uses the desktop pet icon")
 	check(ProjectSettings.get_setting("display/window/size/window_width_override") == 1, "startup window stays one pixel wide until the scene is ready")
 	check(ProjectSettings.get_setting("display/window/size/window_height_override") == 1, "startup window stays one pixel tall until the scene is ready")
 	check(app.root_window.transparent and app.root_window.borderless and app.root_window.always_on_top, "desktop window flags configured")
 	check(app.bubble.mouse_passthrough and app.bubble.unfocusable, "speech window never takes input or focus")
+	var menu_panel := app.menu.get_theme_stylebox("panel") as StyleBoxFlat
+	var menu_hover := app.menu.get_theme_stylebox("hover") as StyleBoxFlat
+	check(menu_panel.bg_color == Color("fff4d9") and menu_panel.border_color == Color("303247") and menu_panel.get_border_width(SIDE_LEFT) == 2, "context menu uses the pet panel style")
+	check(menu_hover.bg_color == Color("ffe1a6") and menu_hover.border_color == Color("e79777"), "context menu hover uses the pet accent style")
+	check(app.menu.get_theme_color("font_color") == Color("303247"), "context menu text uses the pet ink color")
 	var native_handle := DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE, root.get_window_id())
 	app._set_native_passthrough(root, true)
 	check(WindowsMousePassthrough.is_passthrough(native_handle), "native main window passes input to other processes")

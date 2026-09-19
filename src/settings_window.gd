@@ -18,11 +18,17 @@ var file_dialog: FileDialog
 var importing := true
 var defaults_requested := false
 
+func _init() -> void:
+	# Window 默认 visible = true。必须赶在入树之前隐藏: 若拖到 _ready() 再置 false,
+	# main.gd 的 add_child() 入树那一刻 Godot 就已经创建并在屏幕左上角显示了一个
+	# 620x660 的原生窗口, 随后才被销毁。DWM 只要合成到那几毫秒, 启动时就会闪过一帧
+	# 黑/白方块(内容未绘制时是白的, 已绘制时是界面的深色底)。
+	visible = false
+
 func _ready() -> void:
 	title = "Quote Workshop · Beat the Little Boss"
 	size = Vector2i(620, 660)
 	min_size = Vector2i(570, 610)
-	visible = false
 	transient = true
 	unresizable = false
 	close_requested.connect(hide)

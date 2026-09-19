@@ -108,3 +108,39 @@ New view checks were failing before the layer implementation and now pass, along
 The frame-derived desktop hand fragments were removed because their source bounds made a visible seam and stray upper fragments. The male upper-body crop now ends behind the desk edge, so the desk forms one continuous foreground. Male hit recoil stays on the leader skeleton: the desk layers, monitor, keyboard, papers, ashtray, and coffee remain anchored at their normal positions.
 
 New View regressions first failed for the old crop and moving hit props, then passed after the fix. Core, desktop, view, complete export, Windows startup, and fresh-extraction startup checks pass. `DesktopPet-Windows-x64-0.1.12.zip` contains exactly the EXE, native DLL, README, and notices; its file/product version is 0.1.12.0. SHA256: `26DE3479FFC3F76D97CA56361EE57AB9A58D51B3ED6FF71C9164071367B8925A`.
+
+## Follow-up 0.1.13 — male torso contact across frames
+
+Fixed the actual transparent gap between the seated torso and opaque desktop by extending the crop and aligning each frame's solid torso center below the desk edge. This accommodates the shorter damage frames while retaining the original PNGs, compact scale, breathing, and recoil. Runtime cropping also removes the disconnected strip above smoking frames 04–07; region-aware pixel hit testing matches the resulting visible character.
+
+Failing-first regressions cover all 28 seated frames, breathing extremes, stages 0–3, normal/critical attacks, smoking strips, and cropped hit masks. Core, desktop, view, real-window app integration, complete build, and fresh-extraction startup tests passed. All 32 rendered frames were inspected. Version 0.1.13.0 is available in `dist/DesktopPet/DesktopPet.exe` and `dist/DesktopPet-Windows-x64-0.1.13.zip`; generic ZIP refreshed. ZIP SHA256: `7E8A71D26BF1EDF0E9E9F233AB2F5DC2CD4F07B1B398241D05BF87F9B1A3BF9D`. The existing running copy and user preferences were preserved.
+
+## Follow-up 0.1.14 — restore the complete idle seated pose
+
+User screenshots exposed that the previous no-gap checks did not ensure a visible chest and resting hands. Removed the artificial y=160 limit from torso measurement: all seated frames now use their actual torso bottom, with a matching per-frame crop. Normal idle frames regain their lower torso and forearms. The tabletop is behind the seated character, with props and the cabinet in front; visible hands remain clickable.
+
+New collar-clearance, layering, and hand-hit checks failed before their fixes. Core, desktop, view, real-window integration, build/startup, and clean-extraction startup checks pass. Inspected all frames plus the before/after render in `.scratch/desktop-pet/idle-layer-comparison.png`. Version 0.1.14.0 is in `dist/DesktopPet/DesktopPet.exe` and `dist/DesktopPet-Windows-x64-0.1.14.zip`; generic ZIP refreshed. SHA256: `717E29E200AB153669D570DD2322AB9082821C4F5EDD5B087958AEF81E1CA563`. Sprite assets and the existing running instance remain unchanged.
+
+## Follow-up 0.1.15 — keep male damage frames at idle size
+
+Preserved the user-approved idle pose and corrected the smaller artwork within damage frames 16–27. Each damage frame receives a cached uniform scale based on the continuous head/torso silhouette, anchored at the existing desktop baseline and body center. Idle/smoking and full terminal frames retain their prior proportions; PNGs are unchanged.
+
+All 12 frame-size regressions failed before the fix (77–88% of idle height). Frame-size, idle-preservation, attack-playback, persistent-injury, and all prior view tests now pass, alongside core/desktop tests, real-window integration, full build, and clean-extraction startup checks. Inspected the full gallery and `.scratch/desktop-pet/hit-size-comparison.png`. Version 0.1.15.0 is in `dist/DesktopPet/DesktopPet.exe` and `dist/DesktopPet-Windows-x64-0.1.15.zip`; generic ZIP refreshed. SHA256: `C807BEB6F129A9DB6F67DC17AD27096B4A61C567AE22B9A3DB5D97202160CD9C`.
+
+## Follow-up 0.1.16 — female coffee arm attachment
+
+Following the female 32-frame addition, the user reported detached coffee and limbs. Normal idle had hidden the articulated arms and painted an unattached coffee fragment into body frames. It now holds the approved clean torso and animates connected shoulder/elbow/wrist chains using existing sleeve and hand textures. One cup follows the wrist through an eased pickup, mouth contact and return to the desktop. Hits interrupt the sip, and role/stage transitions hide the idle rig. Male frames and all source PNGs are unchanged.
+
+Nine failing-first regression checks now pass, including full-cycle continuity and scaled hand/cup/mouth contact. Core, desktop, view, female idle, female asset, real-window integration, build and clean-extraction startup checks passed. Rendered evidence and package details are in `docs/qa/2026-09-19-female-coffee-rig.md`; task 13 is complete. Version 0.1.16.0 is in `dist/DesktopPet/DesktopPet.exe` and `dist/DesktopPet-Windows-x64-0.1.16.zip`; generic ZIP refreshed. SHA256: `B98999374CCE0D4F3D201EAF30EC8E100770D2EE7A038FF8F3ECB94E38F669B0`.
+
+## Follow-up 0.1.17 — keep female arms during hits
+
+Fixed the previous coffee guard hiding both arms during attacks and all seated injury stages. Arm visibility now covers female stages 0–3 independently of sipping. Shoulder anchors follow the current frame and wrists move with hip recoil; the cup stays on the desk. Terminal frames retain their own arms without an extra overlay.
+
+The expanded regression first failed all 64 attack combinations plus injured resting visibility, then passed after the fix. Core, desktop, view, female idle/assets, real-window integration, full build and fresh-extraction startup all passed. Inspected hit/critical-hit captures across all five stages. Task 14 is complete; QA is in `docs/qa/2026-09-19-female-hit-arms.md`. Version 0.1.17.0 is in `dist/DesktopPet-0.1.17/DesktopPet.exe`; the generic executable/ZIP are updated. Versioned ZIP SHA256: `A1B0C304B38DD86C8F7231C21EE80028928CC05EF1C426EAC6717618C04A8257`.
+
+## Follow-up 0.1.18 — smooth attack motion
+
+Replaced the instantaneous contact recoil with eased onset/recovery, held the pre-hit frame until contact, and stabilized reaction-to-rest transitions. Both weapons now visibly withdraw; critical recovery fills its original 0.7-second duration. Female coffee interruption follows a curved hand transition, and male idle timing restarts after a hit to avoid returning to a raised smoking pose. Damage, queue behavior and action durations are unchanged.
+
+All 128 motion cases pass, alongside prior arm/coffee, core, desktop, view, asset, real-window integration, full build and fresh-extraction startup checks. Contact angle discontinuity fell from 0.08 to 0.000117 radians. Before/after renderer captures and metrics are in `docs/qa/2026-09-19-attack-motion.md`; task 15 is complete. Version 0.1.18.0 is available in `dist/DesktopPet-0.1.18/DesktopPet.exe`, with generic outputs refreshed. ZIP SHA256: `0A69F10492AC7C47BA087DBF424094CA5E6AC0D1BB980035E8C378396D4A48B7`.
