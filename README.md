@@ -57,7 +57,11 @@
 ./tools/build.ps1
 ```
 
-构建产物位于 `dist/DesktopPet/DesktopPet.exe` 和 `dist/DesktopPet-Windows-x64.zip`。美术生成源文件位于 `tools/draw_art.py`，仅再生成素材时需要 Python 与 Pillow。
+构建产物位于 `dist/DesktopPet/DesktopPet.exe` 和 `dist/DesktopPet-Windows-x64-<版本>.zip`；版本号取自 `export_presets.cfg` 的 `application/product_version`，不再产出无版本号的通用 zip。
+
+首次克隆后运行 `pre-commit install` 启用提交检查（密钥扫描、行尾规范化、禁止直接提交 main）。发布流程见 `docs/agents/release.md`。
+
+美术生成源文件位于 `tools/draw_art.py`，仅再生成素材时需要 Python 与 Pillow。
 
 当前实现包含核心、桌面、视图、女性待机和攻击动作测试；Windows 10、所有显卡及多显示器组合需在对应设备上分别验收。不包含安装程序、开机自启和其他操作系统版本。
 
@@ -67,6 +71,7 @@
 - 任务与进度：`.scratch/desktop-pet/plan.md`
 - 领域术语：`CONTEXT.md`
 - 架构决策：`docs/adr/`
+- 发布流程与说明模板：`docs/agents/release.md`
 - 引擎与第三方许可：`THIRD_PARTY_NOTICES.md`
 
 ## 许可
