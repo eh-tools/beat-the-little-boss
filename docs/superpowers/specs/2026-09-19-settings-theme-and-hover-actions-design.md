@@ -10,7 +10,7 @@ Correct two regressions in the current pixel-menu implementation:
 1. Make the quote-and-volume settings window look like the approved `menu-layout-v3.html` companion instead of a dark Godot system form.
 2. Replace the nearly static hover cursor offsets with readable weapon actions: a hammer strike for the inflatable hammer and alternating left/right hooks for the glove.
 
-The user approved visual-companion option A at `http://localhost:54030/`: strong, readable motion on a fixed cursor hotspot.
+The user approved visual-companion option A: strong, readable motion on a fixed cursor hotspot. The durable visual reference is `docs/superpowers/specs/assets/settings-theme-hover-actions-approved.html`; it uses the repository font and weapon assets through relative paths and is the appearance source of truth for this change.
 
 ## Settings window visual contract
 
@@ -25,7 +25,7 @@ The existing root context menu remains unchanged. The settings window must use t
 - filter panel `#f3dfb6`;
 - secondary border `#d4a476`.
 
-The native window title becomes `语录与音量设置 · Beat the Little Boss`. Inside the native window, the complete settings page follows the approved v3 composition:
+The native window remains 620×660 with a 570×610 minimum size, and its title becomes `语录与音量设置 · Beat the Little Boss`. Inside the native window, the complete settings page follows the approved v3 composition:
 
 1. an ink header bar with gold `语录与音量设置` text;
 2. a cream content surface;
@@ -36,6 +36,22 @@ The native window title becomes `语录与音量设置 · Beat the Little Boss`.
 7. teal primary/action buttons with 2px ink borders and a 3px pixel shadow; destructive delete uses coral;
 8. a warm-tan volume track with coral fill/grabber and an ink audio toggle;
 9. import/export/default actions and close/save actions in the same visual language.
+
+Exact layout metrics:
+
+- the single outer scroll fills the client area and contains the entire page;
+- the ink header is 48px high with 16px horizontal padding and 20px gold text;
+- the cream content area uses 24px left/right, 20px top, and 18px bottom padding with 12px vertical spacing;
+- the eyebrow is 14px, heading 24px, description 16px, and body/control text 16px;
+- the filter panel has a 2px secondary border, 9px inner padding, 9px column gap, and two equal-width controls;
+- filter, input, selector, and action controls are at least 38px high with 2px ink borders;
+- the quote list has a 2px ink outer border and no spacing between rows; rows are at least 38px high with a 2px warm separator;
+- each quote tag is 66px wide, coral, centered, and separated from the cream quote text by a 2px ink border;
+- selected quote text uses a gold background; unselected quote text uses `#fff9e8`;
+- action rows use 10px gaps; pixel-button shadows are `(3, 3)` in ink;
+- the volume section has a 2px dashed secondary top border and 14px horizontal gaps;
+- the volume track is 12px high with a 2px ink border and a 12×12 coral square grabber;
+- the only vertical scrollbar is 10px wide, with a warm track and coral grabber.
 
 All text and control dimensions remain integer-valued. Corners are 0–2px for controls and 6px only for the outer panel where appropriate. The window retains exactly one vertical `ScrollContainer`; no quote-list control may create a nested scrollbar. All current editing behavior remains intact: adding, selecting, updating, deleting, validation, import/export, restoring defaults, volume changes, and saving.
 
@@ -68,6 +84,14 @@ The single glove source texture is mirrored to create alternating sides. The fiv
 5. centered neutral/recovery frame.
 
 `PetView` precomputes the frames from the existing 48×48 weapon textures using nearest-neighbor inverse sampling for rotation, mirroring, and translation. Frames are cached per weapon; no per-frame image allocation occurs during hover. Attack choreography and the visible in-scene weapon rig remain untouched.
+
+The transform convention is exact:
+
+1. Canvas coordinates start at the 72×72 image's top-left; +x is right and +y is down.
+2. Angles are clockwise-positive degrees, matching Godot's 2D screen-space convention.
+3. For each destination pixel, subtract the frame's destination pivot, inverse-rotate by the frame angle, undo horizontal mirroring around the source pivot when requested, then add the source pivot. Round to the nearest source pixel and copy it when in bounds; otherwise leave the destination transparent.
+4. Hammer source pivot is `(24, 40)`. Hammer frame tuples `(angle, destination pivot)` are: `(-40°, (45,58))`, `(-58°, (55,54))`, `(-15°, (42,62))`, `(+34°, (19,61))`, and `(-20°, (46,61))`. The impact tuple places the hammer head over the fixed hotspot.
+5. Glove source pivot is `(24, 24)`. Glove frame tuples `(flip_h, angle, destination pivot)` are: `(false, -18°, (20,40))`, `(false, +8°, (34,36))`, `(true, +18°, (52,40))`, `(true, -8°, (38,36))`, and `(false, 0°, (36,40))`. Frames 1 and 3 are the left and right impact poses.
 
 ## Boundaries
 
