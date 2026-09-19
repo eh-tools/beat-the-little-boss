@@ -7,6 +7,7 @@ const View = preload("res://src/pet_view.gd")
 const Settings = preload("res://src/settings_window.gd")
 const Sound = preload("res://src/audio.gd")
 const Geometry = preload("res://src/desktop_geometry.gd")
+const PetTheme = preload("res://src/pet_theme.gd")
 const BODY_MARGIN := Vector2(16, 16)
 const WINDOW_SIZE := Vector2(192, 212)
 
@@ -16,6 +17,7 @@ var bubble_clock = Clock.new()
 var pet: Node2D
 var sounds: Node
 var menu: PopupMenu
+var scale_menu: PopupMenu
 var settings: Window
 var bubble: Window
 var bubble_label: Label
@@ -30,6 +32,8 @@ var press_screen := Vector2i.ZERO
 var press_window := Vector2i.ZERO
 var press_hit := false
 var cursor_on := false
+var cursor_frame := -1
+var cursor_elapsed := 0.0
 var critical_left := 0.0
 var layout_check := 0.0
 var known_screens: Array[Rect2i] = []
@@ -110,6 +114,8 @@ func _process(delta: float) -> void:
 	root_window.mouse_passthrough = not solid and not pressed
 	_set_native_passthrough(root_window, root_window.mouse_passthrough)
 	var hover: bool = solid and pet.hit_test(body_mouse) and not dragging and active and not menu.visible and not settings.visible
+	if hover and cursor_on:
+		cursor_elapsed += delta
 	pet.set_hovered(hover)
 	_set_cursor(hover)
 	_update_bubble()
@@ -130,6 +136,10 @@ func _input(event: InputEvent) -> void:
 		if event.keycode == KEY_2: _choose_weapon("gloves")
 	if not event is InputEventMouseButton: return
 	var point: Vector2 = (event.position / zoom) - BODY_MARGIN
+	if event.button_index == MOUSE_BUTTON_MIDDLE and event.pressed:
+		if not pressed and not dragging and not menu.visible and not settings.visible and pet.solid_test(point) and pet.hit_test(point):
+			_reset_selected()
+		return
 	if event.button_index == MOUSE_BUTTON_RIGHT and event.pressed:
 		if pet.solid_test(point): _open_menu()
 	if event.button_index != MOUSE_BUTTON_LEFT: return
@@ -159,13 +169,24 @@ func _update_drag(screen_mouse: Vector2i) -> void:
 		root_window.position = Geometry.fit_position(press_window + screen_mouse - press_screen, root_window.size, known_screens)
 
 func _set_cursor(on: bool) -> void:
-	if cursor_on == on: return
-	cursor_on = on
-	if on:
-		var texture: Texture2D = pet.weapon_texture(session.weapon)
-		Input.set_custom_mouse_cursor(texture, Input.CURSOR_ARROW, Vector2(texture.get_width(), texture.get_height()) / 2.0)
-	else:
+	if not on:
+		if not cursor_on:
+			return
+		cursor_on = false
+		cursor_frame = -1
+		cursor_elapsed = 0.0
 		Input.set_custom_mouse_cursor(null)
+		return
+	if not cursor_on:
+		cursor_on = true
+		cursor_elapsed = 0.0
+		cursor_frame = -1
+	var frame_index: int = pet.weapon_cursor_frame_index(cursor_elapsed)
+	if frame_index == cursor_frame:
+		return
+	cursor_frame = frame_index
+	var texture: Texture2D = pet.weapon_cursor_frame(session.weapon, frame_index)
+	Input.set_custom_mouse_cursor(texture, Input.CURSOR_ARROW, Vector2(28, 28))
 
 func _attack_started(event: Dictionary) -> void:
 	pet.play_attack(event)
@@ -246,62 +267,69 @@ func _set_native_passthrough(window: Window, enabled: bool) -> void:
 		native_error_shown = true
 		_show_error("Windows 鼠标穿透设置失败，请重新启动桌宠。")
 
-static func _chinese_font() -> SystemFont:
-	var font := SystemFont.new()
-	font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei", "Noto Sans CJK SC"])
-	return font
+static func _chinese_font() -> FontFile:
+	return PetTheme.font()
 
 func _create_menu() -> void:
 	menu = PopupMenu.new()
-	menu.add_theme_font_override("font", _chinese_font())
-	menu.add_theme_font_size_override("font_size", 15)
-	menu.add_theme_color_override("font_color", Color("303247"))
-	menu.add_theme_color_override("font_hover_color", Color("303247"))
-	menu.add_theme_color_override("font_separator_color", Color("8d5a62"))
-	menu.add_theme_color_override("font_disabled_color", Color("9d8e88"))
-	menu.add_theme_constant_override("item_start_padding", 14)
-	menu.add_theme_constant_override("item_end_padding", 14)
-	menu.add_theme_constant_override("vertical_separation", 5)
-	var panel_style := StyleBoxFlat.new()
-	panel_style.bg_color = Color("fff4d9")
-	panel_style.border_color = Color("303247")
-	panel_style.set_border_width_all(2)
-	panel_style.set_corner_radius_all(6)
-	panel_style.shadow_color = Color(0, 0, 0, 0.18)
-	panel_style.shadow_size = 2
-	menu.add_theme_stylebox_override("panel", panel_style)
-	var hover_style := StyleBoxFlat.new()
-	hover_style.bg_color = Color("ffe1a6")
-	hover_style.border_color = Color("e79777")
-	hover_style.set_border_width_all(1)
-	hover_style.set_corner_radius_all(4)
-	menu.add_theme_stylebox_override("hover", hover_style)
+	_style_popup(menu)
 	add_child(menu)
 	menu.id_pressed.connect(_menu_action)
-	menu.add_separator("Beat the Little Boss")
+	scale_menu = PopupMenu.new()
+	_style_popup(scale_menu)
+	scale_menu.id_pressed.connect(_menu_action)
+	menu.add_separator("角色")
 	menu.add_radio_check_item("男领导 · 甩锅担当", 10)
 	menu.add_radio_check_item("女领导 · 画饼专家", 11)
-	menu.add_separator("今天用什么解气")
+	menu.add_separator("工具")
 	menu.add_radio_check_item("充气大锤    1", 20)
 	menu.add_radio_check_item("双拳套        2", 21)
 	menu.add_separator("显示")
-	menu.add_radio_check_item("原始大小 · 1 倍", 30)
-	menu.add_radio_check_item("放大 · 1.5 倍", 31)
-	menu.add_radio_check_item("放大 · 2 倍", 32)
+	menu.add_submenu_node_item("放大比例", scale_menu)
 	menu.add_check_item("总在最前", 40)
 	menu.add_check_item("播放音效", 41)
+	menu.add_separator("桌宠")
 	menu.add_item("语录与音量设置…", 50)
-	menu.add_separator()
+	menu.add_item("恢复当前领导（中键）", 61)
 	menu.add_item("全部恢复正常", 60)
 	menu.add_item("隐藏到任务栏", 70)
 	menu.add_item("退出", 80)
+	for option in [30, 31, 32]:
+		scale_menu.add_radio_check_item(["原始大小 · 1 倍", "放大 · 1.5 倍", "放大 · 2 倍"][option - 30], option)
+
+func _style_popup(popup: PopupMenu) -> void:
+	popup.add_theme_font_override("font", _chinese_font())
+	popup.add_theme_font_size_override("font_size", 15)
+	popup.add_theme_color_override("font_color", PetTheme.INK)
+	popup.add_theme_color_override("font_hover_color", PetTheme.INK)
+	popup.add_theme_color_override("font_separator_color", Color("8d5a62"))
+	popup.add_theme_color_override("font_disabled_color", Color("9d8e88"))
+	popup.add_theme_constant_override("item_start_padding", 14)
+	popup.add_theme_constant_override("item_end_padding", 14)
+	popup.add_theme_constant_override("vertical_separation", 5)
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = PetTheme.CREAM
+	panel_style.border_color = PetTheme.INK
+	panel_style.set_border_width_all(2)
+	panel_style.set_corner_radius_all(3)
+	panel_style.shadow_color = Color(0, 0, 0, 0.18)
+	panel_style.shadow_size = 2
+	popup.add_theme_stylebox_override("panel", panel_style)
+	var hover_style := StyleBoxFlat.new()
+	hover_style.bg_color = PetTheme.GOLD
+	hover_style.border_color = PetTheme.CORAL
+	hover_style.set_border_width_all(1)
+	hover_style.set_corner_radius_all(2)
+	popup.add_theme_stylebox_override("hover", hover_style)
 
 func _open_menu() -> void:
 	pressed = false
 	dragging = false
 	_set_cursor(false)
-	for pair in [[10, session.selected == "male"], [11, session.selected == "female"], [20, session.weapon == "hammer"], [21, session.weapon == "gloves"], [30, zoom == 1.0], [31, zoom == 1.5], [32, zoom == 2.0], [40, data.preferences.topmost], [41, data.preferences.sound]]:
+	for pair in [[10, session.selected == "male"], [11, session.selected == "female"], [20, session.weapon == "hammer"], [21, session.weapon == "gloves"], [40, data.preferences.topmost], [41, data.preferences.sound]]:
 		menu.set_item_checked(menu.get_item_index(pair[0]), pair[1])
+	for pair in [[30, zoom == 1.0], [31, zoom == 1.5], [32, zoom == 2.0]]:
+		scale_menu.set_item_checked(scale_menu.get_item_index(pair[0]), pair[1])
 	menu.position = DisplayServer.mouse_get_position()
 	menu.popup()
 
@@ -322,11 +350,8 @@ func _menu_action(id: int) -> void:
 		50:
 			settings.open_editor()
 			return
-		60:
-			session.reset_all()
-			pet.set_character(session.selected, session.snapshot())
-			bubble_clock.clear()
-			critical_left = 0.0
+		60: _reset_all()
+		61: _reset_selected()
 		70:
 			bubble.hide()
 			root_window.mode = Window.MODE_MINIMIZED
@@ -336,6 +361,18 @@ func _menu_action(id: int) -> void:
 			return
 	_apply_preferences()
 	_save_preferences()
+
+func _reset_selected() -> void:
+	session.reset_character()
+	pet.set_character(session.selected, session.snapshot())
+	bubble_clock.clear()
+	critical_left = 0.0
+
+func _reset_all() -> void:
+	session.reset_all()
+	pet.set_character(session.selected, session.snapshot())
+	bubble_clock.clear()
+	critical_left = 0.0
 
 func _choose_weapon(value: String) -> void:
 	session.select_weapon(value)

@@ -6,6 +6,8 @@ const MALE_BODY_HEIGHT := 180
 const MALE_BODY_SCALE := 0.7625
 const MALE_BODY_BASELINE := 130.0
 const FRAME_CHARACTER_IDS := ["male", "female"]
+const CURSOR_FRAME_SIZE := 56
+const CURSOR_SEQUENCE := [0, 1, 2, 1]
 var character := "male"
 var state := {"stage": 0, "progress": 0, "bump": 0, "chin": 0}
 var _textures: Dictionary = {}
@@ -44,6 +46,7 @@ var _attack_from_frame := 0
 var _attack_from_hands: Dictionary = {}
 var _hovered := false
 var _capture := false
+var _cursor_frames: Dictionary = {}
 
 
 func _ready() -> void:
@@ -396,6 +399,34 @@ func play_attack(event: Dictionary) -> void:
 
 func weapon_texture(weapon: String) -> Texture2D:
 	return _tex("hammer" if weapon == "hammer" else "gloves")
+
+
+func weapon_cursor_frame_index(elapsed: float) -> int:
+	var sequence_index := int(fmod(maxf(elapsed, 0.0), 0.48) / 0.12)
+	return CURSOR_SEQUENCE[sequence_index]
+
+
+func weapon_cursor_frame(weapon: String, frame_index: int) -> Texture2D:
+	var frames: Array = _cursor_frames_for(weapon)
+	return frames[clampi(frame_index, 0, frames.size() - 1)]
+
+
+func _cursor_frames_for(weapon: String) -> Array:
+	if _cursor_frames.has(weapon):
+		return _cursor_frames[weapon]
+	var source := weapon_texture(weapon).get_image()
+	var offsets := [Vector2i.ZERO, Vector2i.ZERO, Vector2i.ZERO]
+	if weapon == "hammer":
+		offsets = [Vector2i(0, 1), Vector2i.ZERO, Vector2i(0, -1)]
+	else:
+		offsets = [Vector2i(-1, 0), Vector2i.ZERO, Vector2i(1, 0)]
+	var frames: Array[Texture2D] = []
+	for offset in offsets:
+		var image := Image.create(CURSOR_FRAME_SIZE, CURSOR_FRAME_SIZE, false, Image.FORMAT_RGBA8)
+		image.blit_rect(source, Rect2i(Vector2i.ZERO, source.get_size()), Vector2i(4, 4) + offset)
+		frames.append(ImageTexture.create_from_image(image))
+	_cursor_frames[weapon] = frames
+	return frames
 
 
 func set_hovered(value: bool) -> void:

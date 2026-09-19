@@ -1,6 +1,8 @@
 extends Window
 ## A draft editor: changing rows never mutates live quotes until Save succeeds.
 
+const PetTheme = preload("res://src/pet_theme.gd")
+
 signal save_requested(recover_defaults: bool)
 
 var data: RefCounted
@@ -8,12 +10,13 @@ var draft: Array = []
 var role: OptionButton
 var category: OptionButton
 var stage: OptionButton
-var lines: ItemList
+var lines: VBoxContainer
 var input: LineEdit
 var message: Label
 var volume: HSlider
 var sound: CheckButton
 var filtered_indices: Array[int] = []
+var selected_draft_index := -1
 var file_dialog: FileDialog
 var importing := true
 var defaults_requested := false
@@ -32,14 +35,12 @@ func _ready() -> void:
 	transient = true
 	unresizable = false
 	close_requested.connect(hide)
-	var font := SystemFont.new()
-	font.font_names = PackedStringArray(["Microsoft YaHei UI", "Microsoft YaHei"])
 	var style_theme := Theme.new()
-	style_theme.default_font = font
+	style_theme.default_font = PetTheme.font()
 	style_theme.default_font_size = 16
 	theme = style_theme
 	var background := ColorRect.new()
-	background.color = Color("202936")
+	background.color = PetTheme.INK
 	background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(background)
 	var margin := MarginContainer.new()
@@ -75,10 +76,9 @@ func _ready() -> void:
 	category = _option(["待机", "受击", "求饶"], filters)
 	role.item_selected.connect(func(_i): _refresh_list())
 	category.item_selected.connect(func(_i): _refresh_list())
-	lines = ItemList.new()
+	lines = VBoxContainer.new()
 	lines.custom_minimum_size.y = 185
-	lines.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	lines.item_selected.connect(_select_row)
+	lines.add_theme_constant_override("separation", 4)
 	box.add_child(lines)
 	var entry_label := Label.new()
 	entry_label.text = "语录内容 · 最多 24 字，气泡自动分为两行"
@@ -158,8 +158,10 @@ func _button(text_value: String, parent: Node, action: Callable) -> Button:
 	return button
 
 func _refresh_list() -> void:
-	lines.clear()
+	for child in lines.get_children():
+		child.free()
 	filtered_indices.clear()
+	selected_draft_index = -1
 	input.text = ""
 	stage.selected = 0
 	stage.disabled = category.selected == 2
@@ -168,10 +170,33 @@ func _refresh_list() -> void:
 		if row.character != _role() or row.category != _category(): continue
 		filtered_indices.append(i)
 		var tag: String = "通用" if int(row.stage) == -1 else ["正常", "轻伤", "明显", "重伤", "终态"][int(row.stage)]
-		lines.add_item("[%s] %s" % [tag, row.text])
+		var button := Button.new()
+		button.text = "[%s] %s" % [tag, row.text]
+		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		button.custom_minimum_size.y = 34
+		button.toggle_mode = true
+		button.add_theme_color_override("font_color", PetTheme.CREAM)
+		button.add_theme_color_override("font_hover_color", PetTheme.INK)
+		button.add_theme_color_override("font_pressed_color", PetTheme.INK)
+		button.add_theme_stylebox_override("normal", _row_style(Color("394050"), PetTheme.TEAL))
+		button.add_theme_stylebox_override("hover", _row_style(PetTheme.GOLD, PetTheme.CORAL))
+		button.add_theme_stylebox_override("pressed", _row_style(PetTheme.GOLD, PetTheme.CORAL))
+		button.pressed.connect(_select_row.bind(i))
+		lines.add_child(button)
 
-func _select_row(index: int) -> void:
-	var row: Dictionary = draft[filtered_indices[index]]
+func _row_style(background: Color, border: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = background
+	style.border_color = border
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(2)
+	style.content_margin_left = 10
+	style.content_margin_right = 10
+	return style
+
+func _select_row(draft_index: int) -> void:
+	selected_draft_index = draft_index
+	var row: Dictionary = draft[draft_index]
 	input.text = row.text
 	stage.selected = int(row.stage) + 1
 
@@ -201,21 +226,21 @@ func _add_row() -> void:
 	message.text = "已加入草稿。点击「保存设置」后生效。"
 
 func _update_row() -> void:
-	if lines.get_selected_items().is_empty():
+	if selected_draft_index < 0:
 		message.text = "请先选中要修改的语录。"
 		return
 	var candidate := draft.duplicate(true)
-	candidate[filtered_indices[lines.get_selected_items()[0]]] = _entry()
+	candidate[selected_draft_index] = _entry()
 	if not _validate_draft(candidate): return
 	draft = candidate
 	_refresh_list()
 	message.text = "已更新草稿。点击「保存设置」后生效。"
 
 func _delete_row() -> void:
-	if lines.get_selected_items().is_empty():
+	if selected_draft_index < 0:
 		message.text = "请先选中要删除的语录。"
 		return
-	draft.remove_at(filtered_indices[lines.get_selected_items()[0]])
+	draft.remove_at(selected_draft_index)
 	_refresh_list()
 	message.text = "已从草稿删除。空分类自动使用内置语录。"
 

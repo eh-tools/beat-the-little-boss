@@ -75,6 +75,16 @@ func reset_all() -> void:
 	changed.emit()
 
 
+func reset_character(id: String = "") -> void:
+	var character := selected if id == "" else id
+	if character not in CHARACTERS:
+		return
+	_states[character] = _fresh_state()
+	if character == selected:
+		cancel_attacks()
+	changed.emit()
+
+
 func cancel_attacks() -> void:
 	_queue.clear()
 	_remaining = 0.0

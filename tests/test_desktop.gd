@@ -4,6 +4,7 @@ const Geometry = preload("res://src/desktop_geometry.gd")
 const Settings = preload("res://src/settings_window.gd")
 const Data = preload("res://src/pet_data.gd")
 const Audio = preload("res://src/audio.gd")
+const View = preload("res://src/pet_view.gd")
 var failures := 0
 
 func _init() -> void:
@@ -15,6 +16,13 @@ func check(condition: bool, label: String) -> void:
 		push_error(label)
 
 func run() -> void:
+	var view := View.new()
+	root.add_child(view)
+	await process_frame
+	check(view.weapon_cursor_frame_index(0.0) == 0 and view.weapon_cursor_frame_index(0.12) == 1 and view.weapon_cursor_frame_index(0.24) == 2 and view.weapon_cursor_frame_index(0.36) == 1, "hover cursor follows the four-step pixel animation")
+	var cursor_texture: Texture2D = view.weapon_cursor_frame("hammer", 2)
+	check(cursor_texture.get_width() == 56 and cursor_texture.get_height() == 56, "hover cursor frames keep a centered 56px canvas")
+	view.queue_free()
 	var screens: Array[Rect2i] = [Rect2i(0, 0, 1920, 1040), Rect2i(-1280, -200, 1280, 1024)]
 	check(Geometry.fit_position(Vector2i(-1000, 100), Vector2i(192, 212), screens) == Vector2i(-1000, 100), "secondary monitor negative origin is retained")
 	check(Geometry.fit_position(Vector2i(3000, 3000), Vector2i(192, 212), screens) == Vector2i(1728, 828), "disconnected monitor returns to visible work area")
@@ -36,12 +44,11 @@ func run() -> void:
 	editor._add_row()
 	check(editor.draft.size() == count + 1, "editor visibly rejects overlong draft")
 	check(not editor.message.text.is_empty(), "validation message is visible")
-	editor.lines.select(editor.lines.item_count - 1)
-	editor._select_row(editor.lines.item_count - 1)
+	editor._select_row(editor.filtered_indices[-1])
 	editor.input.text = "这次真不加班"
 	editor._update_row()
 	check(editor.draft[-1].text == "这次真不加班", "editing selected row changes draft")
-	editor.lines.select(editor.lines.item_count - 1)
+	editor._select_row(editor.filtered_indices[-1])
 	editor._delete_row()
 	check(editor.draft.size() == count, "deleting selected row changes draft")
 	editor._defaults()
