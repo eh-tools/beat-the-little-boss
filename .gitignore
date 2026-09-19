@@ -7,6 +7,7 @@ local-data/
 __pycache__/
 docs/qa/
 docs/specs/
+docs/superpowers/
 .scratch/**/_zoom/
 .scratch/**/*.png
 .scratch/**/*.log

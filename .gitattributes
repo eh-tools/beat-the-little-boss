@@ -1,0 +1,13 @@
+# 统一按 LF 存档，避免 Windows 工作区把行尾差异带进提交
+* text=auto eol=lf
+
+# 二进制文件显式声明，禁止行尾与编码转换
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.dll binary
+*.exe binary
+*.zip binary

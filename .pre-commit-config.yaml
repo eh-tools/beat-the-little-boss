@@ -1,0 +1,37 @@
+# commit 阶段的秒级检查: 空白/行尾规范化 + 密钥扫描 + 禁止直接提交 main。
+# 安装: pre-commit install
+# 版本升级: pre-commit autoupdate
+
+repos:
+  # ---- 内置轻量检查 (commit) ----
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=2048] # 美术源图最大 1.2MB, 阈值放宽到 2MB
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # ---- 密钥扫描 (commit) ----
+  - repo: local
+    hooks:
+      - id: gitleaks
+        name: gitleaks 密钥扫描
+        entry: gitleaks git --staged --verbose --redact
+        language: system
+        pass_filenames: false
+
+  # ---- 禁止直接提交 main (commit) ----
+  - repo: local
+    hooks:
+      - id: no-commit-on-main
+        name: 禁止直接提交 main
+        entry: python tools/hooks/no-commit-on-main.py
+        language: system
+        stages: [pre-commit]
+        pass_filenames: false
+        always_run: true
