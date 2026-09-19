@@ -32,11 +32,20 @@ if (-not (Test-Path -LiteralPath $NotesFile)) { throw "找不到发布说明：$
 $notes = (Get-Content -LiteralPath $NotesFile -Raw).Trim()
 if (-not $notes) { throw "发布说明为空：$NotesFile" }
 
-# 4. 构建（跑全部测试 → 导出 → 打包）
+# 4. 说明结构检查：三节齐全且非空、不使用未公开路径、不手写脚本固定块
+foreach ($sectionName in @('变更', '验证', '已知限制')) {
+    $section = [regex]::Match($notes, '(?ms)^##\s*{0}\s*$(.*?)(?=^##\s|\z)' -f [regex]::Escape($sectionName))
+    if (-not $section.Success) { throw "发布说明缺少「## $sectionName」小节（模板见 docs/agents/release.md）" }
+    if (-not $section.Groups[1].Value.Trim()) { throw "发布说明的「## $sectionName」小节为空（模板见 docs/agents/release.md）" }
+}
+if ($notes -match 'docs/qa') { throw '发布说明指向未公开的 docs/qa 路径；改用公开的 PR/issue 引用（模板见 docs/agents/release.md）。' }
+if ($notes -match '\*\*包含文件\*\*|\*\*SHA-256\*\*') { throw '发布说明不要手写「包含文件」「SHA-256」固定块，脚本会自动附加。' }
+
+# 5. 构建（跑全部测试 → 导出 → 打包）
 if (-not $SkipBuild) { & "$PSScriptRoot/build.ps1" }
 if (-not (Test-Path -LiteralPath $zipPath)) { throw "缺少发布产物：$zipPath" }
 
-# 5. 组装说明：正文来自 notes，固定块由脚本附加，避免每次写法漂移
+# 6. 组装说明：正文来自 notes，固定块由脚本附加，避免每次写法漂移
 $hash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash
 $bodyFile = Join-Path $env:TEMP "release-$tag.md"
 $body = @"
@@ -50,7 +59,7 @@ $notes
 "@
 [System.IO.File]::WriteAllText($bodyFile, $body, [System.Text.UTF8Encoding]::new($false))
 
-# 6. 发布：由 gh 在远端创建 tag（--target main），失败时不会留下半截 tag
+# 7. 发布：由 gh 在远端创建 tag（--target main），失败时不会留下半截 tag
 & gh release create $tag --target main --title $title --notes-file $bodyFile $zipPath
 if ($LASTEXITCODE -ne 0) { throw "gh release create 失败；说明文件保留在 $bodyFile" }
 & git -C $projectRoot fetch origin --tags | Out-Null
