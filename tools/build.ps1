@@ -28,12 +28,13 @@ if ($LASTEXITCODE -ne 0 -or ($motionLog -match 'SCRIPT ERROR|ERROR:') -or -not (
 $exportLog = & $GodotPath --headless --path $projectRoot --export-release 'Windows Desktop' "$releaseDir/DesktopPet.exe" 2>&1
 if ($LASTEXITCODE -ne 0 -or ($exportLog -match 'SCRIPT ERROR|ERROR:')) { $exportLog; throw 'Windows export failed.' }
 Copy-Item -LiteralPath "$projectRoot/README.md" -Destination "$releaseDir/README.md"
+Copy-Item -LiteralPath "$projectRoot/LICENSE" -Destination "$releaseDir/LICENSE"
 Copy-Item -LiteralPath "$projectRoot/THIRD_PARTY_NOTICES.md" -Destination "$releaseDir/THIRD_PARTY_NOTICES.md"
 $nativeLibrary = "$releaseDir/windows_mouse_passthrough.dll"
 if (-not (Test-Path -LiteralPath $nativeLibrary)) { throw 'Export did not include the native mouse passthrough library.' }
 & "$projectRoot/tests/test_startup_windows.ps1" -Executable "$releaseDir/DesktopPet.exe"
 if ($LASTEXITCODE -ne 0) { throw 'Startup window test failed.' }
-$filesToPackage = @("$releaseDir/DesktopPet.exe", $nativeLibrary, "$releaseDir/README.md", "$releaseDir/THIRD_PARTY_NOTICES.md")
+$filesToPackage = @("$releaseDir/DesktopPet.exe", $nativeLibrary, "$releaseDir/README.md", "$releaseDir/LICENSE", "$releaseDir/THIRD_PARTY_NOTICES.md")
 # Explicit file list keeps local preferences and tests out of the portable archive.
 Compress-Archive -LiteralPath $filesToPackage -DestinationPath "$projectRoot/dist/DesktopPet-Windows-x64.zip" -Force
 Write-Output "Portable archive: $projectRoot/dist/DesktopPet-Windows-x64.zip"

@@ -4,6 +4,10 @@
 
 两位虚构领导，一点下班的快乐。原创像素角色、充气大锤与双拳套，离线运行的 Windows 桌面小玩具。
 
+## 下载
+
+从 [GitHub Releases](https://github.com/eh-tools/beat-the-little-boss/releases) 下载 Windows 便携版，解压后直接运行 `DesktopPet.exe`。
+
 ## 运行
 
 解压 `DesktopPet-Windows-x64.zip`，双击 `DesktopPet.exe`。不需要安装 Godot。请将文件夹放在有写入权限的位置，例如桌面或个人文档目录。
@@ -64,3 +68,7 @@
 - 领域术语：`CONTEXT.md`
 - 架构决策：`docs/adr/`
 - 引擎与第三方许可：`THIRD_PARTY_NOTICES.md`
+
+## 许可
+
+项目代码与原创美术资源以 [MIT License](LICENSE) 发布。Godot Engine 及其他第三方组件的许可与声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
