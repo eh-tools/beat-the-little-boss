@@ -13,6 +13,7 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
         args: [--maxkb=2048] # 美术源图最大 1.2MB, 阈值放宽到 2MB
+        exclude: ^assets/fonts/fusion-pixel-12px-proportional\.ttf$
       - id: mixed-line-ending
         args: [--fix=lf]
 

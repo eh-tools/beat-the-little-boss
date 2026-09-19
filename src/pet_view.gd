@@ -6,6 +6,27 @@ const MALE_BODY_HEIGHT := 180
 const MALE_BODY_SCALE := 0.7625
 const MALE_BODY_BASELINE := 130.0
 const FRAME_CHARACTER_IDS := ["male", "female"]
+const CURSOR_FRAME_SIZE := 72
+const CURSOR_FRAME_COUNT := 5
+const CURSOR_FRAME_SECONDS := 0.2
+const CURSOR_SOURCE_PIVOT := Vector2(24, 24)
+const CURSOR_HAMMER_PIVOT := Vector2(24, 40)
+# Approved hover choreography: wind-up, raised, swing, impact (head over the hotspot), rebound.
+const CURSOR_HAMMER_FRAMES := [
+	{"angle": -40.0, "destination": Vector2(45, 58)},
+	{"angle": -58.0, "destination": Vector2(55, 54)},
+	{"angle": -15.0, "destination": Vector2(42, 62)},
+	{"angle": 34.0, "destination": Vector2(19, 61)},
+	{"angle": -20.0, "destination": Vector2(46, 61)},
+]
+# Left wind-up, left hook, mirrored right wind-up, right hook, centred recovery.
+const CURSOR_GLOVE_FRAMES := [
+	{"mirrored": false, "angle": -18.0, "destination": Vector2(20, 40)},
+	{"mirrored": false, "angle": 8.0, "destination": Vector2(34, 36)},
+	{"mirrored": true, "angle": 18.0, "destination": Vector2(52, 40)},
+	{"mirrored": true, "angle": -8.0, "destination": Vector2(38, 36)},
+	{"mirrored": false, "angle": 0.0, "destination": Vector2(36, 40)},
+]
 var character := "male"
 var state := {"stage": 0, "progress": 0, "bump": 0, "chin": 0}
 var _textures: Dictionary = {}
@@ -44,6 +65,7 @@ var _attack_from_frame := 0
 var _attack_from_hands: Dictionary = {}
 var _hovered := false
 var _capture := false
+var _cursor_frames: Dictionary = {}
 
 
 func _ready() -> void:
@@ -396,6 +418,56 @@ func play_attack(event: Dictionary) -> void:
 
 func weapon_texture(weapon: String) -> Texture2D:
 	return _tex("hammer" if weapon == "hammer" else "gloves")
+
+
+func weapon_cursor_frame_index(elapsed: float) -> int:
+	var loop := float(CURSOR_FRAME_COUNT) * CURSOR_FRAME_SECONDS
+	var step := int(floor(fmod(maxf(elapsed, 0.0), loop) / CURSOR_FRAME_SECONDS + 0.000001))
+	return clampi(step, 0, CURSOR_FRAME_COUNT - 1)
+
+
+func weapon_cursor_frame(weapon: String, frame_index: int) -> Texture2D:
+	var frames: Array[Texture2D] = _cursor_frames_for(weapon)
+	return frames[clampi(frame_index, 0, frames.size() - 1)]
+
+
+func _cursor_frames_for(weapon: String) -> Array[Texture2D]:
+	if _cursor_frames.has(weapon):
+		return _cursor_frames[weapon]
+	var source := weapon_texture(weapon).get_image()
+	var sizes := source.get_size()
+	var frames: Array[Texture2D] = []
+	if weapon == "hammer":
+		for spec in CURSOR_HAMMER_FRAMES:
+			frames.append(_cursor_texture(source, sizes, CURSOR_HAMMER_PIVOT, false, spec["angle"], spec["destination"]))
+	else:
+		for spec in CURSOR_GLOVE_FRAMES:
+			frames.append(_cursor_texture(source, sizes, CURSOR_SOURCE_PIVOT, spec["mirrored"], spec["angle"], spec["destination"]))
+	_cursor_frames[weapon] = frames
+	return frames
+
+
+func _cursor_texture(source: Image, sizes: Vector2i, pivot: Vector2, mirrored: bool, angle: float, destination: Vector2) -> Texture2D:
+	return ImageTexture.create_from_image(_cursor_frame_image(source, sizes, pivot, mirrored, angle, destination))
+
+
+## Nearest-neighbour inverse sampling keeps the source art crisp and allocates nothing during hover.
+func _cursor_frame_image(source: Image, sizes: Vector2i, pivot: Vector2, mirrored: bool, angle: float, destination: Vector2) -> Image:
+	var image := Image.create(CURSOR_FRAME_SIZE, CURSOR_FRAME_SIZE, false, Image.FORMAT_RGBA8)
+	var radians := -deg_to_rad(angle)
+	for y in CURSOR_FRAME_SIZE:
+		for x in CURSOR_FRAME_SIZE:
+			var point := (Vector2(x, y) - destination).rotated(radians)
+			if mirrored:
+				point.x = -point.x
+			point += pivot
+			var sample := Vector2i(roundi(point.x), roundi(point.y))
+			if sample.x < 0 or sample.y < 0 or sample.x >= sizes.x or sample.y >= sizes.y:
+				continue
+			var color := source.get_pixelv(sample)
+			if color.a > 0.0:
+				image.set_pixel(x, y, color)
+	return image
 
 
 func set_hovered(value: bool) -> void:

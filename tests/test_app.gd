@@ -4,6 +4,7 @@ extends SceneTree
 var failures := 0
 var app: Node
 var output := "res://.scratch/desktop-pet"
+const PetTheme = preload("res://src/pet_theme.gd")
 
 func _init() -> void:
 	call_deferred("run")
@@ -46,6 +47,7 @@ func run() -> void:
 	check(not ProjectSettings.get_setting("application/boot_splash/show_image"), "export does not show the default Godot boot image")
 	check(ProjectSettings.get_setting("application/boot_splash/bg_color").a == 0.0, "boot splash background is transparent")
 	check(ProjectSettings.get_setting("application/config/icon", "") == "res://assets/icon.png", "runtime uses the desktop pet icon")
+	check(ResourceLoader.exists("res://assets/fonts/fusion-pixel-12px-proportional.ttf"), "pixel font asset is bundled")
 	check(ProjectSettings.get_setting("display/window/size/window_width_override") == 1, "startup window stays one pixel wide until the scene is ready")
 	check(ProjectSettings.get_setting("display/window/size/window_height_override") == 1, "startup window stays one pixel tall until the scene is ready")
 	check(app.root_window.transparent and app.root_window.borderless and app.root_window.always_on_top, "desktop window flags configured")
@@ -55,6 +57,17 @@ func run() -> void:
 	check(menu_panel.bg_color == Color("fff4d9") and menu_panel.border_color == Color("303247") and menu_panel.get_border_width(SIDE_LEFT) == 2, "context menu uses the pet panel style")
 	check(menu_hover.bg_color == Color("ffe1a6") and menu_hover.border_color == Color("e79777"), "context menu hover uses the pet accent style")
 	check(app.menu.get_theme_color("font_color") == Color("303247"), "context menu text uses the pet ink color")
+	check(app.menu.get_theme_font("font") == PetTheme.font(), "context menu uses the bundled pixel font")
+	check(app.menu.get_theme_font_size("font_size") == 16 and menu_panel.get_corner_radius(0) == 6, "root menu uses the specified pixel metrics")
+	var app_script: GDScript = app.get_script()
+	check(app_script.get_script_constant_map().get("CURSOR_HOTSPOT") == Vector2(36, 36), "hover cursor keeps the fixed 36,36 hotspot")
+	check(app.scale_menu.get_item_count() == 3, "scale options are grouped in a submenu")
+	check(app.scale_menu.get_parent() == app.menu and app.scale_menu.is_inside_tree(), "the scale submenu hangs off the root menu and can open")
+	check(app.scale_menu.get_theme_font("font") == PetTheme.font() and app.scale_menu.get_theme_stylebox("panel").get_corner_radius(0) == 6, "scale submenu shares the root pixel theme")
+	var root_labels: Array[String] = []
+	for index in app.menu.get_item_count():
+		root_labels.append(app.menu.get_item_text(index))
+	check(root_labels == ["角色", "男领导 · 甩锅担当", "女领导 · 画饼专家", "工具", "充气大锤    1", "双拳套        2", "显示", "放大比例", "总在最前", "播放音效", "桌宠", "语录与音量设置…", "恢复当前领导（中键）", "全部恢复正常", "隐藏到任务栏", "退出"], "root menu keeps the requested grouped order")
 	var native_handle := DisplayServer.window_get_native_handle(DisplayServer.WINDOW_HANDLE, root.get_window_id())
 	app._set_native_passthrough(root, true)
 	check(WindowsMousePassthrough.is_passthrough(native_handle), "native main window passes input to other processes")
@@ -109,6 +122,17 @@ func run() -> void:
 	check(terminal_entries[0] == 2, "one finale per leader")
 	app._menu_action(60)
 	check(app.session.snapshot("male").progress == 0 and app.session.snapshot("female").progress == 0, "menu reset restores both leaders")
+	app.session.set_roll_source(func(): return 0.99)
+	app.session.request_attack()
+	app._menu_action(61)
+	check(app.session.snapshot("male").progress == 0 and app.session.snapshot("female").progress == 0, "current leader reset clears the selected leader")
+	app.session.request_attack()
+	var middle_click := InputEventMouseButton.new()
+	middle_click.button_index = MOUSE_BUTTON_MIDDLE
+	middle_click.pressed = true
+	middle_click.position = Vector2(95, 75)
+	app._input(middle_click)
+	check(app.session.snapshot().progress == 0, "middle click resets the visible leader")
 	for option in [30, 31, 32]:
 		app._menu_action(option)
 		check(app.root_window.size == Vector2i(Vector2(192, 212) * app.zoom), "scale menu updates physical window size")
@@ -125,6 +149,24 @@ func run() -> void:
 	app._menu_action(50)
 	await process_frame
 	await RenderingServer.frame_post_draw
+	check(app.settings.find_child("SettingsScroll", true, false) != null, "settings uses one outer scroll container")
+	check(app.settings.lines.find_children("*", "ScrollContainer", true, false).is_empty(), "quote rows have no nested scroll container")
+	var heading: Array = app.settings.find_children("*", "Label", true, false).filter(func(label): return label.text == "让领导换一套说辞。")
+	check(heading.size() == 1 and heading[0].get_theme_font_size("font_size") == 24, "settings heading uses the requested pixel size")
+	check(app.settings.title == "语录与音量设置 · Beat the Little Boss", "settings window title is localised")
+	check(app.settings.theme.default_font == PetTheme.font(), "settings window uses the bundled pixel font theme")
+	var settings_header := app.settings.find_child("HeaderBar", true, false) as PanelContainer
+	check(settings_header != null and (settings_header.get_theme_stylebox("panel") as StyleBoxFlat).bg_color == PetTheme.INK, "settings header uses the ink bar")
+	var save_button: Button
+	var delete_button: Button
+	for button in app.settings.find_children("*", "Button", true, false):
+		if button.text == "保存设置": save_button = button
+		if button.text == "删除": delete_button = button
+	check(save_button != null and (save_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == PetTheme.TEAL, "settings save button uses the teal action style")
+	check(delete_button != null and (delete_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == PetTheme.CORAL, "settings delete button uses the coral destructive style")
+	check(app.settings.volume.get_theme_icon("grabber").get_width() == 12, "settings volume slider uses the pixel grabber")
+	var notice_panel := app.notice.get_theme_stylebox("panel") as StyleBoxFlat
+	check(app.notice.get_theme_font_size("font_size") == 16 and notice_panel.bg_color == PetTheme.CREAM and app.notice.get_label().get_theme_color("font_color") == PetTheme.CORAL, "notice uses the shared pixel theme")
 	app.settings.get_texture().get_image().save_png(output.path_join("settings.png"))
 	app.settings.input.text = "今天准时下班"
 	app.settings._add_row()
