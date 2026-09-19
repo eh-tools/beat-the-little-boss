@@ -1,7 +1,10 @@
 param([string]$GodotPath = "$PSScriptRoot/../.tools/godot/Godot_v4.5.2-stable_win64_console.exe")
 $ErrorActionPreference = 'Stop'
+. "$PSScriptRoot/version.ps1"
 $projectRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $releaseDir = Join-Path $projectRoot 'dist/DesktopPet'
+$version = Get-ProjectVersion -ProjectRoot $projectRoot
+$zipPath = Join-Path $projectRoot "dist/DesktopPet-Windows-x64-$version.zip"
 if (-not (Test-Path -LiteralPath $GodotPath)) { throw 'Godot 4.5.2 is required. See README.md for setup.' }
 if (-not (Test-Path -LiteralPath "$projectRoot/.tools/templates/windows_release_x86_64.exe")) { throw 'Windows export template is missing. See README.md.' }
 New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
@@ -36,5 +39,10 @@ if (-not (Test-Path -LiteralPath $nativeLibrary)) { throw 'Export did not includ
 if ($LASTEXITCODE -ne 0) { throw 'Startup window test failed.' }
 $filesToPackage = @("$releaseDir/DesktopPet.exe", $nativeLibrary, "$releaseDir/README.md", "$releaseDir/LICENSE", "$releaseDir/THIRD_PARTY_NOTICES.md")
 # Explicit file list keeps local preferences and tests out of the portable archive.
-Compress-Archive -LiteralPath $filesToPackage -DestinationPath "$projectRoot/dist/DesktopPet-Windows-x64.zip" -Force
-Write-Output "Portable archive: $projectRoot/dist/DesktopPet-Windows-x64.zip"
+Compress-Archive -LiteralPath $filesToPackage -DestinationPath $zipPath -Force
+# 只保留带版本号的 zip: 清掉旧的无版本副本, 避免"通用 zip 是哪个版本"的混淆。
+$legacyZip = Join-Path $projectRoot 'dist/DesktopPet-Windows-x64.zip'
+if (Test-Path -LiteralPath $legacyZip) { Remove-Item -LiteralPath $legacyZip; Write-Output "Removed legacy archive: $legacyZip" }
+Write-Output "Version: $version"
+Write-Output "Portable archive: $zipPath"
+Write-Output "SHA-256: $((Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash)"
