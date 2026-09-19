@@ -1,0 +1,57 @@
+extends SceneTree
+
+const Geometry = preload("res://src/desktop_geometry.gd")
+const Settings = preload("res://src/settings_window.gd")
+const Data = preload("res://src/pet_data.gd")
+const Audio = preload("res://src/audio.gd")
+var failures := 0
+
+func _init() -> void:
+	call_deferred("run")
+
+func check(condition: bool, label: String) -> void:
+	if not condition:
+		failures += 1
+		push_error(label)
+
+func run() -> void:
+	var screens: Array[Rect2i] = [Rect2i(0, 0, 1920, 1040), Rect2i(-1280, -200, 1280, 1024)]
+	check(Geometry.fit_position(Vector2i(-1000, 100), Vector2i(192, 212), screens) == Vector2i(-1000, 100), "secondary monitor negative origin is retained")
+	check(Geometry.fit_position(Vector2i(3000, 3000), Vector2i(192, 212), screens) == Vector2i(1728, 828), "disconnected monitor returns to visible work area")
+	check(Geometry.fit_position(Vector2i(-1300, -250), Vector2i(384, 424), screens) == Vector2i(-1280, -200), "scaled window clamps to left monitor")
+	var editor := Settings.new()
+	editor.data = Data.new()
+	root.add_child(editor)
+	editor.open_editor()
+	await process_frame
+	await process_frame
+	for button in editor.find_children("*", "Button", true, false):
+		if button.text == "保存设置":
+			check(button.get_global_rect().end.y <= editor.size.y - 12, "save button stays within settings window")
+	var count: int = editor.data.quotes.size()
+	editor.input.text = "准时下班"
+	editor._add_row()
+	check(editor.draft.size() == count + 1 and editor.data.quotes.size() == count, "adding a draft does not change active quotes")
+	editor.input.text = "字".repeat(25)
+	editor._add_row()
+	check(editor.draft.size() == count + 1, "editor visibly rejects overlong draft")
+	check(not editor.message.text.is_empty(), "validation message is visible")
+	editor.lines.select(editor.lines.item_count - 1)
+	editor._select_row(editor.lines.item_count - 1)
+	editor.input.text = "这次真不加班"
+	editor._update_row()
+	check(editor.draft[-1].text == "这次真不加班", "editing selected row changes draft")
+	editor.lines.select(editor.lines.item_count - 1)
+	editor._delete_row()
+	check(editor.draft.size() == count, "deleting selected row changes draft")
+	editor._defaults()
+	check(editor.draft == Data.default_quotes(), "defaults restore both quote libraries")
+	editor.queue_free()
+	var audio := Audio.new()
+	root.add_child(audio)
+	check(audio.sounds.size() == 4, "all four effects generated")
+	check(audio.sounds.hammer.data != audio.sounds.gloves.data, "weapons have distinct audio")
+	audio.queue_free()
+	await process_frame
+	if failures == 0: print("desktop tests passed")
+	quit(failures)

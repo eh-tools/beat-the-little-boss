@@ -1,0 +1,13 @@
+.godot/
+.tools/
+dist/
+local-data/
+*.tmp
+.superpowers/
+__pycache__/
+.scratch/**/_zoom/
+.scratch/**/*.png
+.scratch/**/*.log
+.scratch/**/ui-test.json*
+.scratch/**/passthrough-clicks.json
+.scratch/**/handoff-status.html
