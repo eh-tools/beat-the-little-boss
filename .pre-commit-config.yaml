@@ -30,7 +30,7 @@ repos:
     hooks:
       - id: no-commit-on-main
         name: 禁止直接提交 main
-        entry: python3 tools/hooks/no-commit-on-main.py
+        entry: python tools/hooks/no-commit-on-main.py
         language: system
         stages: [pre-commit]
         pass_filenames: false
