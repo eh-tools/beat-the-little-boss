@@ -1,4 +1,4 @@
-# SDD ledger — plan: .scratch/desktop-pet/plan.md
+# SDD ledger — plan: docs/desktop-pet/plan.md
 
 ## Context and decisions
 

@@ -1,6 +1,6 @@
 # Triage Labels
 
-本项目保留默认五个分流角色名称。使用本地 Markdown 时，将对应字符串写入规格或任务顶部附近的 `Status:` 行。
+本项目保留默认五个分流角色名称，并作为 GitHub 仓库标签使用（`gh label list --repo eh-tools/beat-the-little-boss`）。
 
 | 技能中的角色 | 本项目标签 | 含义 |
 | --- | --- | --- |
@@ -10,4 +10,6 @@
 | `ready-for-human` | `ready-for-human` | 需要人工实施 |
 | `wontfix` | `wontfix` | 不予实施 |
 
-当技能要求应用某个分流角色时，使用本表对应的标签字符串。今后若要更名，修改本表映射，避免引入重复标签。
+当技能要求应用某个分流角色时，用 `gh issue edit <编号> --add-label <标签>` 打上对应标签；切换状态时同时用 `--remove-label` 移除旧标签。
+
+今后若要更名，先改仓库标签再改本表映射，避免引入重复标签。

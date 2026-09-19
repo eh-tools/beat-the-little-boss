@@ -9,11 +9,11 @@
 
 ### Issue tracker
 
-本项目使用本地 Markdown 管理规格与任务，存放于 `.scratch/<feature-slug>/`。具体规则见 `docs/agents/issue-tracker.md`。
+本项目使用 GitHub Issues 管理任务与规格，仓库为 `eh-tools/beat-the-little-boss`。具体规则见 `docs/agents/issue-tracker.md`。本地 `.scratch/` 只放调试产物与实施报告。
 
 ### Triage labels
 
-使用默认五个分流标签，并通过任务文件的 `Status:` 行记录。角色映射见 `docs/agents/triage-labels.md`。
+使用默认五个分流标签，作为 GitHub 仓库标签记录。角色映射见 `docs/agents/triage-labels.md`。
 
 ### Domain docs
 
