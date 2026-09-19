@@ -8,14 +8,6 @@ __pycache__/
 docs/qa/
 docs/specs/
 docs/superpowers/
-# 本地工作区: 任务看板、评审报告、每次发布的全量解包测试副本。与 docs/qa 一样不公开。
-# 用"逐层忽略内容 + 放行已跟踪文件"而不是直接忽略目录: 直接写 .scratch/ 会让 git 遍历时
-# 跳过整个目录, 连已跟踪的 progress.md 都无法再 git add。已在版本库里的三个文件继续正常提交。
-.scratch/*
-!.scratch/desktop-pet/
-.scratch/desktop-pet/*
-!.scratch/desktop-pet/issues/
-.scratch/desktop-pet/issues/*
-!.scratch/desktop-pet/issues/10-icon-derived-male-sprite.md
-!.scratch/desktop-pet/issues/11-male-layered-desk-redesign.md
-!.scratch/desktop-pet/progress.md
+# 本地工作区: 调试产物、实施报告与发布说明草稿，不进版本库。
+# 任务与规格已迁移到 GitHub Issues 与 docs/desktop-pet/。
+.scratch/

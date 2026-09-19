@@ -67,8 +67,9 @@
 
 ## 项目资料
 
-- 实施规格：`.scratch/desktop-pet/spec.md`
-- 任务与进度：`.scratch/desktop-pet/plan.md`
+- 实施规格：`docs/desktop-pet/spec.md`
+- 任务与进度：`docs/desktop-pet/plan.md`、`docs/desktop-pet/progress.md`
+- 任务追踪：GitHub Issues（https://github.com/eh-tools/beat-the-little-boss/issues）
 - 领域术语：`CONTEXT.md`
 - 架构决策：`docs/adr/`
 - 发布流程与说明模板：`docs/agents/release.md`
