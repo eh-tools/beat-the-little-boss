@@ -16,7 +16,7 @@ const MUTED := Color("8d5a62")
 const ROW_SEPARATOR := Color("eed7ab")
 
 const CONTROL_HEIGHT := 38
-const SHADOW_SIZE := 3
+const SHADOW_OFFSET := 3
 const CHECKBOX_SIZE := 14
 const GRABBER_SIZE := 12
 const SCROLLBAR_WIDTH := 10
@@ -67,11 +67,12 @@ static func control_box(background := SURFACE, border := INK, border_width := 2)
 
 
 ## Primary action surface: ink border plus the approved 3px offset pixel shadow.
+## Zero spread keeps the drawn block exactly 3px, matching the mockup's `box-shadow: 3px 3px`.
 static func action_box(background: Color, border := INK) -> StyleBoxFlat:
 	var style := control_box(background, border, 2)
 	style.shadow_color = INK
-	style.shadow_size = SHADOW_SIZE
-	style.shadow_offset = Vector2(SHADOW_SIZE, SHADOW_SIZE)
+	style.shadow_size = 0
+	style.shadow_offset = Vector2(SHADOW_OFFSET, SHADOW_OFFSET)
 	return style
 
 
@@ -177,6 +178,8 @@ static func build_settings_theme() -> Theme:
 	theme.set_color("font_separator_color", "PopupMenu", MUTED)
 	theme.set_icon("checked", "CheckButton", checkbox_icon(true))
 	theme.set_icon("unchecked", "CheckButton", checkbox_icon(false))
+	theme.set_icon("checked_disabled", "CheckButton", checkbox_icon(true))
+	theme.set_icon("unchecked_disabled", "CheckButton", checkbox_icon(false))
 	for state in ["normal", "hover", "pressed", "focus", "disabled"]:
 		theme.set_stylebox(state, "CheckButton", clear_box())
 	theme.set_color("font_color", "CheckButton", INK)

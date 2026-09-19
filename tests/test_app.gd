@@ -62,6 +62,7 @@ func run() -> void:
 	var app_script: GDScript = app.get_script()
 	check(app_script.get_script_constant_map().get("CURSOR_HOTSPOT") == Vector2(36, 36), "hover cursor keeps the fixed 36,36 hotspot")
 	check(app.scale_menu.get_item_count() == 3, "scale options are grouped in a submenu")
+	check(app.scale_menu.get_parent() == app.menu and app.scale_menu.is_inside_tree(), "the scale submenu hangs off the root menu and can open")
 	check(app.scale_menu.get_theme_font("font") == PetTheme.font() and app.scale_menu.get_theme_stylebox("panel").get_corner_radius(0) == 6, "scale submenu shares the root pixel theme")
 	var root_labels: Array[String] = []
 	for index in app.menu.get_item_count():

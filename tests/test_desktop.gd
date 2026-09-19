@@ -45,6 +45,16 @@ func mirrors_about(right: Image, left: Image, axis: int) -> bool:
 			if right.get_pixel(x, y).to_rgba32() != left.get_pixel(source_x, y).to_rgba32(): return false
 	return true
 
+## The opaque pixel pattern relative to its own bounding box: identical for pure translations,
+## different once the frame is rotated.
+func relative_shape(image: Image, bounds: Rect2i) -> String:
+	var points: Array[String] = []
+	for y in image.get_height():
+		for x in image.get_width():
+			if image.get_pixel(x, y).a > 0.0:
+				points.append("%d,%d" % [x - bounds.position.x, y - bounds.position.y])
+	return "|".join(points)
+
 func run() -> void:
 	var view := View.new()
 	root.add_child(view)
@@ -57,7 +67,7 @@ func run() -> void:
 	for weapon in ["hammer", "gloves"]:
 		var frames: Array[Texture2D] = []
 		var origins := {}
-		var counts := {}
+		var shapes := {}
 		for index in View.CURSOR_FRAME_COUNT:
 			frames.append(view.weapon_cursor_frame(weapon, index))
 		check(view.weapon_cursor_frame(weapon, 0) == frames[0], "%s cursor frames are cached" % weapon)
@@ -68,16 +78,12 @@ func run() -> void:
 			check(image.get_pixel(0, 0).a == 0.0 and image.get_pixel(71, 0).a == 0.0 and image.get_pixel(0, 71).a == 0.0 and image.get_pixel(71, 71).a == 0.0, "%s frame %d stays transparent outside the art" % [weapon, index])
 			var bounds := opaque_bounds(image)
 			origins[str(bounds.position)] = true
-			var opaque := 0
-			for y in image.get_height():
-				for x in image.get_width():
-					if image.get_pixel(x, y).a > 0.0: opaque += 1
-			counts[opaque] = true
+			shapes[relative_shape(image, bounds)] = true
 		for left in View.CURSOR_FRAME_COUNT:
 			for right in range(left + 1, View.CURSOR_FRAME_COUNT):
 				check(frames[left].get_image().get_data() != frames[right].get_image().get_data(), "%s frames %d and %d are different drawings" % [weapon, left, right])
-		check(origins.size() >= 4, "%s frames translate across the cursor canvas" % weapon)
-		check(counts.size() >= 3, "%s frames rotate instead of only translating" % weapon)
+		check(origins.size() == View.CURSOR_FRAME_COUNT, "%s frames each sit at a different canvas position" % weapon)
+		check(shapes.size() == View.CURSOR_FRAME_COUNT, "%s frames each use a different rotated drawing" % weapon)
 	var hammer_data: Array[PackedByteArray] = []
 	for index in View.CURSOR_FRAME_COUNT:
 		hammer_data.append(view.weapon_cursor_frame("hammer", index).get_image().get_data())
@@ -88,13 +94,15 @@ func run() -> void:
 		var right: Image = view.weapon_cursor_frame("gloves", pair[1]).get_image()
 		check(mirrors_about(right, left, 36), "glove frame %d mirrors the left-side frame %d" % [pair[1], pair[0]])
 	check(not mirrors_about(view.weapon_cursor_frame("gloves", 4).get_image(), view.weapon_cursor_frame("gloves", 0).get_image(), 36), "the recovery glove frame is its own centred pose")
+	for impact in [1, 3]:
+		check(opaque_bounds(view.weapon_cursor_frame("gloves", impact).get_image()).has_point(Vector2i(36, 36)), "glove impact frame %d lands on the hotspot" % impact)
 	view.queue_free()
 
 	var theme: Theme = PetTheme.build_settings_theme()
 	check(theme.default_font == PetTheme.font(), "settings theme uses the bundled pixel font")
 	var button_style := theme.get_stylebox("normal", "Button") as StyleBoxFlat
 	check(button_style.bg_color == PetTheme.TEAL and button_style.border_color == PetTheme.INK and button_style.get_border_width(SIDE_LEFT) == 2, "settings buttons use the teal pixel fill and 2px ink border")
-	check(button_style.shadow_color == PetTheme.INK and button_style.shadow_size == 3 and button_style.shadow_offset == Vector2(3, 3), "settings buttons carry the 3px pixel shadow")
+	check(button_style.shadow_color == PetTheme.INK and button_style.shadow_size == 0 and button_style.shadow_offset == Vector2(3, 3), "settings buttons carry the 3px pixel shadow")
 	var input_style := theme.get_stylebox("normal", "LineEdit") as StyleBoxFlat
 	check(input_style.bg_color == PetTheme.SURFACE and input_style.get_border_width(SIDE_TOP) == 2, "settings input uses the warm surface with an ink border")
 	check(theme.get_color("font_color", "LineEdit") == PetTheme.INK and theme.get_color("font_placeholder_color", "LineEdit") == PetTheme.MUTED, "settings input text uses the palette")
@@ -160,6 +168,8 @@ func run() -> void:
 	check(quote.button_pressed and quote.get_theme_color("font_color") == PetTheme.INK, "selecting a row marks it as the gold current row")
 	var rule: Variant = editor.find_child("VolumeRule", true, false)
 	check(rule != null and rule.get("thickness") == 2 and rule.get("rule_color") == PetTheme.LINE, "volume section starts with a 2px dashed rule")
+	if editor.lines.get_child_count() > 1:
+		check((editor.lines.get_child(editor.lines.get_child_count() - 1).get_theme_stylebox("panel") as StyleBoxFlat).get_border_width(SIDE_BOTTOM) == 0, "the last quote row leaves the list border clean")
 	check((editor.volume.custom_minimum_size.y >= 12), "volume slider keeps the pixel track height")
 	var save_button: Button
 	var delete_button: Button
@@ -167,7 +177,9 @@ func run() -> void:
 		if button.text == "保存设置": save_button = button
 		if button.text == "删除": delete_button = button
 	check(save_button != null and (save_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == PetTheme.TEAL, "save button uses the teal action style")
-	check(delete_button != null and (delete_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == PetTheme.CORAL and (delete_button.get_theme_stylebox("normal") as StyleBoxFlat).shadow_size == 3, "delete button uses the coral destructive style")
+	check(delete_button != null and (delete_button.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == PetTheme.CORAL and (delete_button.get_theme_stylebox("normal") as StyleBoxFlat).shadow_offset == Vector2(3, 3), "delete button uses the coral destructive style")
+	var background := editor.find_child("SettingsBackground", true, false) as ColorRect
+	check(background != null and background.color == PetTheme.CREAM, "settings page sits on the cream surface")
 	var count: int = editor.data.quotes.size()
 	editor.input.text = "准时下班"
 	editor._add_row()

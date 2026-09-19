@@ -264,6 +264,9 @@ func _refresh_list() -> void:
 		quote.pressed.connect(_select_row.bind(i))
 		row_inner.add_child(quote)
 		lines.add_child(row_control)
+	# The mockup closes the list with the ink border, not a trailing warm separator.
+	if not lines.get_children().is_empty():
+		lines.get_child(lines.get_child_count() - 1).add_theme_stylebox_override("panel", PetTheme.flat_box(PetTheme.SURFACE))
 
 func _select_row(draft_index: int) -> void:
 	selected_draft_index = draft_index
