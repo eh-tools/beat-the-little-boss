@@ -5,6 +5,8 @@ local-data/
 *.tmp
 .superpowers/
 __pycache__/
+docs/qa/
+docs/specs/
 .scratch/**/_zoom/
 .scratch/**/*.png
 .scratch/**/*.log

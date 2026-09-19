@@ -2,7 +2,7 @@
 
 工作工程中，暴打小老板；有气就出气！这是一个离线运行的 Windows 桌面解压小工具：用夸张的卡通反馈消化工作里的火气，不针对现实中的任何人。
 
-两位虚构领导，一点下班的快乐。原创像素角色、充气大锤与双拳套，离线运行的 Windows 桌面小玩具。
+两位虚构领导，一点下班的快乐。像素角色、充气大锤与双拳套，离线运行的 Windows 桌面小玩具。
 
 ## 下载
 
@@ -59,7 +59,7 @@
 
 构建产物位于 `dist/DesktopPet/DesktopPet.exe` 和 `dist/DesktopPet-Windows-x64.zip`。美术生成源文件位于 `tools/draw_art.py`，仅再生成素材时需要 Python 与 Pillow。
 
-当前实现与已执行测试记录见 `docs/qa/2026-09-16.md`。Windows 10、所有显卡及多显示器组合需在对应设备上分别验收；不包含安装程序、开机自启和其他操作系统版本。
+当前实现包含核心、桌面、视图、女性待机和攻击动作测试；Windows 10、所有显卡及多显示器组合需在对应设备上分别验收。不包含安装程序、开机自启和其他操作系统版本。
 
 ## 项目资料
 
@@ -71,4 +71,4 @@
 
 ## 许可
 
-项目代码与原创美术资源以 [MIT License](LICENSE) 发布。Godot Engine 及其他第三方组件的许可与声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+项目代码与随附素材以 [MIT License](LICENSE) 发布。Godot Engine 及其他第三方组件的许可与声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
